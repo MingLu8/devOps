@@ -52,10 +52,26 @@
         "appServicePlanHostingEnvironment": {
             "type": "string",
             "defaultValue":"sample-app-plan"
+        },
+        "cdnEndPointOrigin": {
+            "type": "string",
+            "defaultValue":"asiwebp-convert.azurewebsites.net"
+        },
+        "cdnProfileName": {
+            "type": "string",
+            "defaultValue":"asiimage2"
+        },
+        "cdnSku": {
+            "type": "string",
+            "defaultValue":"Standard_Microsoft"
+        },
+        "cdnEndpointName": {
+            "type": "string",
+            "defaultValue":"webp2"
         }
     },
     "variables":{
-        "uniqueStorageName":"[concat(parameters('storagePrefix'), uniqueString(resourceGroup().id))]"
+        "uniqueStorageName":"[concat(parameters('storagePrefix'), uniqueString(resourceGroup().id))]",
     },
     "resources": [
          {
@@ -68,10 +84,11 @@
             },
             "kind": "StorageV2",
             "properties": {
-                "supportsHttpsTrafficOnly": true
+                "supportsHttpsTrafficOnly": true,
+                "accessTier": "Hot"
             }
          },
-        {
+         {
             "apiVersion": "2018-02-01",
             "name": "[parameters('appServicePlanName')]",
             "type": "Microsoft.Web/serverfarms",
@@ -92,12 +109,69 @@
                 "Tier": "[parameters('appServicePlanSku')]",
                 "Name": "[parameters('appServicePlanSkuCode')]"
             }
+        },      
+        {        
+            "type": "Microsoft.Cdn/profiles",
+            "apiVersion": "2019-04-15",
+            "name": "[parameters('cdnProfileName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+            "name": "[parameters('cdnSku')]"
+            },
+            "resources": [
+            {
+                "type": "endpoints",
+                "apiVersion": "2019-04-15",
+                "name": "[parameters('cdnEndpointName')]",
+                "location": "[parameters('location')]",
+                "dependsOn": [
+                    "[resourceId('Microsoft.Cdn/profiles', parameters('cdnProfileName'))]"
+                ],
+                "tags": {
+                    "displayName": "CDN Endpoint"
+                },
+                "properties": {
+                    "originHostHeader": "[parameters('cdnEndPointOrigin')]",
+                    "isHttpAllowed": true,
+                    "isHttpsAllowed": true,
+                    "queryStringCachingBehavior": "IgnoreQueryString",
+                    "contentTypesToCompress": [],
+                    "isCompressionEnabled": false,
+                    "origins": [{
+                        "name": "origin1",
+                        "properties": {
+                            "hostName": "[parameters('cdnEndPointOrigin')]"
+                        }
+                    }]
+                    ,
+                    "deliveryPolicy": {
+                        "description": "Add function key header",
+                        "rules": [
+                            {
+                                "name" :  "ModifyRequestHeader",
+                                "order": "0",                            
+                                "actions": [
+                                    {
+                                        "name": "ModifyRequestHeader",
+                                        "parameters": {
+                                            "@odata.type": "#Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters",
+                                            "headerAction": "Append",
+                                            "headerName": "x-functions-key",
+                                            "value": "P5LpxXoK2OMjz2gS6qU1WGn0/lB0fdwJvVtusEMtm1QSF4uVqaUWYA=="
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }         
+                }
+            }]
         }
-    ],
-    "outputs":{
-        "storageAccountConnectionString": {  
-            "type": "string",  
-            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('uniqueStorageName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('uniqueStorageName')), variables('uniqueStorageName')).keys[0].value)]"  
-        }
-    }
+     ]//,
+    // "outputs":{
+    //     "storageAccountConnectionString": {  
+    //         "type": "string",  
+    //         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('uniqueStorageName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('uniqueStorageName')), variables('uniqueStorageName')).keys[0].value)]"  
+    //     }
+    // }
   }

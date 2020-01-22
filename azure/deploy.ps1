@@ -3,7 +3,7 @@ $location = "East US"
 $templateFile = ".\azuredeploy.json"
 
 
-Remove-AzResourceGroup -Name sample -Force
+# Remove-AzResourceGroup -Name sample -Force
 
 Get-AzResourceGroup -Name $resourceGroup -ErrorVariable notPresent -ErrorAction SilentlyContinue
 
@@ -13,7 +13,7 @@ if($notPresent)
 }
     
 New-AzResourceGroupDeployment `
-  -Name sampleDeployment2 `
+  -Name sampleDeployment3 `
   -ResourceGroupName $resourceGroup `
   -TemplateFile $templateFile `
   -storagePrefix "asiming" `
