@@ -55,6 +55,10 @@
         "description": "Specifies the Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Get it by using Get-AzSubscription cmdlet."
       }
     },
+    "objId":{
+      "type":"string",
+      "defaultValue": "[reference(resourceId('Microsoft.Web/sites', 'asiwebp-convert'), '2018-02-01', 'Full').identity.principalId]"
+    },
     "webpFunctionObjectId": {
       "type": "string",
       "metadata": {
@@ -191,5 +195,8 @@
         "value": "[parameters('secretsObject').secrets[copyIndex()].secretValue]"
       }
     }
-  ]
+  ],
+  "outputs":{
+    "objId":"[parameters('objId')]"
+  }
 }

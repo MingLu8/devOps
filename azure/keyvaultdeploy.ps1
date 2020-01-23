@@ -1,8 +1,8 @@
-$resourceGroup = "sample11"
+$resourceGroup = "sample12"
 $location = "East US"
 $templateFile = ".\keyvaultdeploy.json"
 $templateParameterFile = ".\keyvaultdeploy.parameters.json"
-$keyVaultName = "SomeKeyVault11"
+$keyVaultName = "SomeKeyVault12"
 
 #Remove-AzResourceGroup -Name sample -Force
 
