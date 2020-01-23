@@ -5,7 +5,10 @@
     "keyVaultName": {
       "value": "GEN-UNIQUExxx"
     },
-    "objectId": {
+    "webpFunctionObjectId": {
+      "value": "517cfac0-c3fb-4cfd-967f-c29683a2f198"
+    },
+    "currentUserObjectId": {
       "value": "0a826979-a714-4942-8b2a-20f223ca482f"
     },
     "secretsObject": {
