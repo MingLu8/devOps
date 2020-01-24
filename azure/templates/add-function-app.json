@@ -1,109 +1,239 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "functionStorageName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the storage."
-      }
-    },
-    "functionName": {
-      "type": "string",
-      "metadata": {
-      "description": "Name of the function."
-      }
-    },
-    "functionAppServicePlanName":{
-      "type": "string",
-      "metadata": {
-      "description": "Name of the app service plan."
-      }
-    },
-    "functionPackageUri": {
-      "type": "string",
-      "metadata": {
-          "description": "Uri to function package."
-      }
-    },
-    "functionConfiguration":{
-      "type": "array",
-      "metadata": {
-      "description": "Configuration entries for function."
-      }
-    }    
-  },
-  "variables":
-  {
-    "functionStorageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('functionStorageName'))]"
-  },
-  "resources": [
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[parameters('functionStorageName')]",
-      "apiVersion": "2019-04-01",
-      "location": "[resourceGroup().location]",
-      "kind": "Storage",
-      "sku": {
-        "name": "Standard_LRS"
-      },
-      "properties": {
-        "supportsHttpsTrafficOnly": true
-      }
-    },
-    {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2019-08-01",
-      "name": "[parameters('functionAppServicePlanName')]",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Y1",
-        "tier": "Dynamic"
-      },
-      "properties": {
-        "name": "[parameters('functionAppServicePlanName')]",
-        "computeMode": "Dynamic"
-      }
-    },
-    {
-      "apiVersion": "2019-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[parameters('functionName')]",
-      "location": "[resourceGroup().location]",
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', parameters('functionAppServicePlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('functionAppServicePlanName'))]",
-        "siteConfig": {
-          "appSettings": "[union(parameters('functionConfiguration'),
-          createArray(
-            json(concat('{\"name\": \"AzureWebJobsDashboard\", \"value\": \"',concat('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
-            json(concat('{\"name\": \"AzureWebJobsDashboard\", \"vt('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
-            json(concat('{\"name\": \"AzureWebJobsStorage\", \"valuealue\": \"',conca\": \"',concat('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
-            json(concat('{\"name\": \"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING\", \"value\": \"',concat('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
-            json(concat('{\"name\": \"WEBSITE_CONTENTSHARE\", \"value\": \"',parameters('functionStorageName'),'\"}'))))]"
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "somekeyvault12",
+            "metadata": {
+                "description": "The name of the function app that you wish to create."
+            }
+        },
+        "appName": {
+            "type": "string",
+            "defaultValue": "asisamplefunctionapp6",
+            "metadata": {
+                "description": "The name of the function app that you wish to create."
+            }
+        },
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS"
+            ],
+            "metadata": {
+                "description": "Storage Account type"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "runtime": {
+            "type": "string",
+            "defaultValue": "dotnet",
+            "allowedValues": [
+                "node",
+                "dotnet",
+                "java"
+            ],
+            "metadata": {
+                "description": "The language worker runtime to load in the function app."
+            }
+        },
+        "KeepWarmTimerSchedule": {
+            "type": "string",
+            "defaultValue": "*/90 * * * * *",
+            "metadata": {
+                "description": "keep warm timer schedule, second minute hour day month year."
+            }
+        },
+        "WebPFunctionProtocol": {
+            "type": "string",
+            "defaultValue": "https",
+            "metadata": {
+                "description": "function app protocol."
+            }
+        },
+        "BlobStorageContainerName": {
+            "type": "string",
+            "defaultValue": "originals",
+            "metadata": {
+                "description": "webp image storage container name."
+            }
+        },
+        "MaintainAspectRatio": {
+            "type": "string",
+            "defaultValue": "false",
+            "metadata": {
+                "description": "whether to maintain image aspect ratio when resizing."
+            }
+        },
+        "ImageCacheTimeInSeconds": {
+            "type": "string",
+            "defaultValue": "18921600",
+            "metadata": {
+                "description": "cache-control max-age value in the http response header."
+            }
+        },
+        "BlobStorageConnectionStringSecretKey": {
+            "type": "string",
+            "defaultValue": "BlobStorageConnectionString/211d2dcf723a4cb18b0ec17a371627be",
+            "metadata": {
+                "description": "connection string webp blob storage. "
+            }
+        },
+        "webpFunctionSecretName": {
+            "type": "string",
+            "defaultValue": "webpFunctionKey",
+            "metadata": {
+                "description": "WebP Function Default Key Name."
+            }
         }
-      },
-      "resources": [
+    },
+    "variables": {
+        "functionAppName": "[parameters('appName')]",
+        "hostingPlanName": "[parameters('appName')]",
+        "applicationInsightsName": "[parameters('appName')]",
+        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]",
+        "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "functionWorkerRuntime": "[parameters('runtime')]",
+        "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyVaultName'), '.vault.azure.net/secrets/', parameters('BlobStorageConnectionStringSecretKey'))]",
+        "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+    },
+    "resources": [
         {
-          "name": "MSDeploy",
-          "type": "extensions",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2015-08-01",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', parameters('functionName'))]"
-          ],
-          "properties": {
-            "packageUri": "[concat(parameters('functionPackageUri'))]"
-          }
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2019-04-01",
+            "location": "[parameters('location')]",
+            "kind": "StorageV2",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('hostingPlanName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic"
+            },
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "computeMode": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('functionAppName')]",
+            "location": "[parameters('location')]",
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('functionAppName'))]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "[variables('functionWorkerRuntime')]"
+                        },
+                        {
+                            "name": "KeepWarmTimerSchedule",
+                            "value": "[parameters('KeepWarmTimerSchedule')]"
+                        },
+                        {
+                            "name": "WebPFunctionProtocol",
+                            "value": "[parameters('WebPFunctionProtocol')]"
+                        },
+                        {
+                            "name": "BlobStorageContainerName",
+                            "value": "[parameters('BlobStorageContainerName')]"
+                        },
+                        {
+                            "name": "BlobStorageConnectionString",
+                            "value": "[variables('BlobStorageConnectionString')]"
+                        },
+                        {
+                            "name": "MaintainAspectRatio",
+                            "value": "[parameters('MaintainAspectRatio')]"
+                        },
+                        {
+                            "name": "ImageCacheTimeInSeconds",
+                            "value": "[parameters('ImageCacheTimeInSeconds')]"
+                        },
+                        {
+                            "name": "WebPFunctionHostName",
+                            "value": "[concat(variables('functionAppName'), '.azurewebsites.net')]"
+                        },
+                        {
+                            "name": "webpFunctionSecretName",
+                            "value": "[parameters('webpFunctionSecretName')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2018-05-01-preview",
+            "name": "[variables('applicationInsightsName')]",
+            "type": "microsoft.insights/components",
+            "location": "East US",
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('applicationInsightsName'))]": "Resource"
+            },
+            "properties": {
+                "ApplicationId": "[variables('applicationInsightsName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
         }
-      ]
+    ],
+    "outputs": {
+        "functionDefaultKey": {
+            "type": "string",
+            "value": "[listkeys(concat(variables('functionAppId'), '/host/default/'),'2016-08-01').functionKeys.default]"
+        },
+        "functionPrincipleId": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2018-02-01', 'Full').identity.principalId]"
+        }
     }
-  ]
 }
