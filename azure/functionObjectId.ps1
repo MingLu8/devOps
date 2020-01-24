@@ -14,4 +14,9 @@ New-AzResourceGroupDeployment `
   -Name functionappDeploy `
   -ResourceGroupName $resourceGroup `
   -TemplateFile $templateFile `
-  -Debug
+  # -Debug
+  # New-AzDeployment `
+#   -Name functionappDeploy `
+#   -Location $location `
+#   -TemplateFile $templateFile `
+#  -Debug

@@ -1,0 +1,44 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+
+    "parameters": {
+        "kvResourceGroup": {
+            "type": "string",
+            "defaultValue": "sample12"
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": "8f68529b-8195-4328-8be3-cc04db636273"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "[parameters('kvResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.KeyVault/vaults/secrets",
+                            "name": "[concat('sample12', '/', 'WebPFunctionKey')]",
+                            "apiVersion": "2018-02-14",
+                            "location": "eastus",
+                            "properties": {
+                                "value": "[listkeys(concat(resourceId('8f68529b-8195-4328-8be3-cc04db636273', 'asiwebp-group', 'Microsoft.Web/sites', 'asiwebp-convert'), '/host/default'), '2018-11-01').functionKeys.default]"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

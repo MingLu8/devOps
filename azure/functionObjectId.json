@@ -2,17 +2,36 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-   
+
     },
-    "resources":[],
-    "outputs":{
-        "funcObjId" :{
-            "type": "string",
-            "value":  "[reference(resourceId('asiwebp-group', 'Microsoft.Web/sites', 'asiwebp-convert'), '2018-02-01', 'Full').identity.principalId]"
-        },
-       "deploymentKeyVaultId" : {
-            "type": "string",
-            "value": "[reference(resourceid('sample12', 'Microsoft.KeyVault/vaults/secrets', 'SomeKeyVault12', 'BlobStorageConnectionString'), '2018-02-14').secretUriWithVersion]"
-       } 
-    }
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat('sampleVault123', '/', 'WebPFunctionKey')]",
+            "apiVersion": "2018-02-14",
+            "location": "eastus",
+            "properties": {
+                "value": "[listkeys(concat(resourceId('asiwebp-group', 'Microsoft.Web/sites', 'asiwebp-convert'), '/host/default'), '2018-11-01').functionKeys.default]"
+            }
+        }
+    ]
+    //,
+    // "outputs": {
+    //     "funcObjId": {
+    //         "type": "string",
+    //         "value": "[reference(resourceId('asiwebp-group', 'Microsoft.Web/sites', 'asiwebp-convert'), '2018-02-01', 'Full').identity.principalId]"
+    //     },
+    //     "funcDefaultKey": {
+    //         "type": "string",
+    //         "value": "[listkeys(concat(resourceId('asiwebp-group', 'Microsoft.Web/sites', 'asiwebp-convert'), '/host/default'), '2018-11-01').functionKeys.default]"
+    //     },
+    //     "funcDefaultKeyEnvKey": {
+    //         "type": "string",
+    //         "value": "[reference(resourceid('samplefunctionapp', 'Microsoft.KeyVault/vaults/secrets', 'sampleVault123', 'WebPFunctionKey'), '2018-02-14').secretUriWithVersion]"
+    //     },
+    //     "BlobStorageConnectionStringEnvKey": {
+    //         "type": "string",
+    //         "value": "[reference(resourceid('samplefunctionapp', 'Microsoft.KeyVault/vaults/secrets', 'sampleVault123', 'BlobStorageConnectionString'), '2018-02-14').secretUriWithVersion]"
+    //     }
+    // }
 }
