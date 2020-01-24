@@ -6,6 +6,10 @@
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
         },
+        "apiVersion": {
+            "type": "string",
+            "defaultValue": "2019-04-01"
+        },
         "storageAccountName": {
             "type": "string",
             "defaultValue": "[toLower(concat('storage2', uniqueString(resourceGroup().name)))]"
@@ -24,14 +28,13 @@
         }
     },
     "variables": {
-        "storageName": "[toLower(parameters('storageAccountName'))]",
-        "storageAccountApiVersion": "2019-04-01"
+        "storageName": "[toLower(parameters('storageAccountName'))]"
     },
     "resources": [
         {
             "name": "[variables('storageName')]",
             "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "apiVersion": "[parameters('apiVersion')]",
             "location": "[parameters('location')]",
             "kind": "StorageV2",
             "sku": {
