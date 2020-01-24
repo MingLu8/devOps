@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "functionStorageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the storage."
+      }
+    },
+    "functionName": {
+      "type": "string",
+      "metadata": {
+      "description": "Name of the function."
+      }
+    },
+    "functionAppServicePlanName":{
+      "type": "string",
+      "metadata": {
+      "description": "Name of the app service plan."
+      }
+    },
+    "functionPackageUri": {
+      "type": "string",
+      "metadata": {
+          "description": "Uri to function package."
+      }
+    },
+    "functionConfiguration":{
+      "type": "array",
+      "metadata": {
+      "description": "Configuration entries for function."
+      }
+    }    
+  },
+  "variables":
+  {
+    "functionStorageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('functionStorageName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('functionStorageName')]",
+      "apiVersion": "2019-04-01",
+      "location": "[resourceGroup().location]",
+      "kind": "Storage",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "supportsHttpsTrafficOnly": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2019-08-01",
+      "name": "[parameters('functionAppServicePlanName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic"
+      },
+      "properties": {
+        "name": "[parameters('functionAppServicePlanName')]",
+        "computeMode": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2019-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[parameters('functionName')]",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('functionAppServicePlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('functionAppServicePlanName'))]",
+        "siteConfig": {
+          "appSettings": "[union(parameters('functionConfiguration'),
+          createArray(
+            json(concat('{\"name\": \"AzureWebJobsDashboard\", \"value\": \"',concat('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
+            json(concat('{\"name\": \"AzureWebJobsDashboard\", \"vt('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
+            json(concat('{\"name\": \"AzureWebJobsStorage\", \"valuealue\": \"',conca\": \"',concat('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
+            json(concat('{\"name\": \"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING\", \"value\": \"',concat('DefaultEndpointsProtocol=https;AccountName=', parameters('functionStorageName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2019-06-01').keys[0].value),'\"}')),
+            json(concat('{\"name\": \"WEBSITE_CONTENTSHARE\", \"value\": \"',parameters('functionStorageName'),'\"}'))))]"
+        }
+      },
+      "resources": [
+        {
+          "name": "MSDeploy",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', parameters('functionName'))]"
+          ],
+          "properties": {
+            "packageUri": "[concat(parameters('functionPackageUri'))]"
+          }
+        }
+      ]
+    }
+  ]
+}

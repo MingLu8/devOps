@@ -14,4 +14,5 @@ New-AzResourceGroupDeployment `
   -Name functionappDeploy `
   -ResourceGroupName $resourceGroup `
   -TemplateFile $templateFile `
-  -Debug
+  -appName asifunctionappsample9
+#-Debug
