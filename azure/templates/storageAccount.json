@@ -8,7 +8,7 @@
         },
         "storageAccountName": {
             "type": "string",
-            "defaultValue": "storageAccountSample"
+            "defaultValue": "[toLower(concat('storage2', uniqueString(resourceGroup().name)))]"
         },
         "storageAccountSku": {
             "type": "string",
@@ -23,19 +23,29 @@
             }
         }
     },
+    "variables": {
+        "storageName": "[toLower(parameters('storageAccountName'))]",
+        "storageAccountApiVersion": "2019-04-01"
+    },
     "resources": [
         {
-            "name": "[parameters('storageAccountName')]",
+            "name": "[variables('storageName')]",
             "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "2019-04-01",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
             "location": "[parameters('location')]",
             "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageAccountSku')]"
             },
             "tags": {
-                "displayName": "[parameters('storageAccountName')]"
+                "displayName": "[variables('storageName')]"
             }
         }
-    ]
+    ],
+    "outputs": {
+        "storageAccountConnectionString": {
+            "type": "string",
+            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), variables('storageAccountApiVersion')).keys[0].value)]"
+        }
+    }
 }
