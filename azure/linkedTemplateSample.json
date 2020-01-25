@@ -22,7 +22,8 @@
     "variables": {
         "addKeyVaultTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault.json",
         "addStorageTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-storage-account.json",
-        "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json"
+        "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json",
+        "addFunctionAppTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-function-app.json"
     },
     "resources": [
         {
@@ -69,6 +70,9 @@
             "apiVersion": "2015-01-01",
             "name": "addSecret",
             "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "addKeyVault"
+            ],
             "properties": {
                 "mode": "incremental",
                 "templateLink": {

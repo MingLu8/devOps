@@ -2,9 +2,9 @@ $userPrinciple = Get-AzADUser -UserPrincipalName mclu@asicentral.com | Select-Ob
 
 $resourceGroup = "samplewebpgroup"
 $location = "East US"
-$templateFile = ".\linkedTemplateSample.json"
+$templateFile = ".\templates\add-secret-to-key-vault.json"
 #$templateParameterFile = ".\keyvaultdeploy.parameters.json"
-$keyVaultName = "samplekeyvault4"
+$keyVaultName = "samplekeyvault3"
 
 #Remove-AzResourceGroup -Name sample -Force
 
@@ -20,5 +20,6 @@ New-AzResourceGroupDeployment `
   -TemplateFile $templateFile `
   -keyVaultName $keyVaultName `
   -location $location `
-  -keyVaultPrincipleId $userPrinciple `
+  -secretName userprinciple2 `
+  -secretValue $userPrinciple `
   #-debug
