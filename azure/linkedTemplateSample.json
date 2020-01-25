@@ -91,6 +91,35 @@
                     }
                 }
             }
+        },
+         {
+            "apiVersion": "2015-01-01",
+            "name": "addWebpFunction",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "addKeyVault", "addStorage"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addFunctionAppTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appName":{
+                        "value": "webpfunction"
+                    },
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "webpFunctionSecretName": {
+                        "value": "[concat(parameters('StorageAccountName'), 'ConnectionString')]"
+                    },
+                    "BlobStorageConnectionStringSecretKey": {
+                        "value": "[reference('addStorage').outputs.storageAccountConnectionString.value]"
+                    }
+                }
+            }
         }
         // {
         //   "name": "MSDeploy",
