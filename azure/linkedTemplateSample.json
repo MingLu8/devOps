@@ -1,19 +1,53 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-06-01-profile",
     "parameters": {
         "StorageAccountName": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "[concat('storage', uniqueString(resourceGroup().name))]"
         },
         "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('keyvalue', uniqueString(resourceGroup().name))]"
+        },
+        "keyVaultPrincipleId": {
             "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
         }
     },
     "variables": {
-        "addStorageTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/storageAccount.json",
-        "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-keyvault.json"
+        "addKeyVaultTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault.json",
+        "addStorageTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-storage-account.json",
+        "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json"
     },
     "resources": [
+        {
+            "apiVersion": "2015-01-01",
+            "name": "addKeyVault",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addKeyVaultTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "objectId": {
+                        "value": "[parameters('keyVaultPrincipleId')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
         {
             "apiVersion": "2015-01-01",
             "name": "addStorage",
