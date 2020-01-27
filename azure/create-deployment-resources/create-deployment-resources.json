@@ -1,0 +1,112 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "StorageAccountName": {
+            "type": "string",
+            "defaultValue": "asideploymentstorage"
+        },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "depoymentstoragekeyvault"
+        },
+        "keyVaultPrincipleId": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "secretsPermissions": {
+            "type": "array",
+            "defaultValue": [
+                "Get",
+                "List",
+                "Set"
+            ],
+            "metadata": {
+                "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
+            }
+        }
+    },
+    "variables": {
+        "addKeyVaultTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault.json",
+        "addStorageTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-storage-account.json",
+        "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addKeyVault",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addKeyVaultTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "objectId": {
+                        "value": "[parameters('keyVaultPrincipleId')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "secretsPermissions": {
+                        "value": "[parameters('secretsPermissions')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addStorage",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "addKeyVault"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addStorageTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "StorageAccountName": {
+                        "value": "[parameters('StorageAccountName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addSecretStorageConnectionString",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "addKeyVault",
+                "addStorage"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addSecretTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secretName": {
+                        "value": "DeploymentStorageConnectionString"
+                    },
+                    "secretValue": {
+                        "value": "[reference('addStorage').outputs.storageAccountConnectionString.value]"
+                    }
+                }
+            }
+        }
+    ]
+}
