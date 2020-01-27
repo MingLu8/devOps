@@ -1,4 +1,4 @@
-$resourceGroup = "samplefunctionapp"
+$resourceGroup = "withDeployment"
 $location = "East US"
 $templateFile = ".\function-app-windows-deploy.json"
 
@@ -9,10 +9,13 @@ Get-AzResourceGroup -Name $resourceGroup -ErrorVariable notPresent -ErrorAction 
 if ($notPresent) {
   New-AzResourceGroup -Name $resourceGroup -Location $location
 }
-    
+   
+$userPrinciple = Get-AzADUser -UserPrincipalName mclu@asicentral.com | Select-Object -ExpandProperty Id
+
 New-AzResourceGroupDeployment `
-  -Name functionappDeploy `
+  -Name functionappDeploy2 `
   -ResourceGroupName $resourceGroup `
   -TemplateFile $templateFile `
-  -appName asifunctionappsample9
-#-Debug
+  -appName asideployFunc `
+  -keyVaultPrincipleId $userPrinciple `
+  #-Debug

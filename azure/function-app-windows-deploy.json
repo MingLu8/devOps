@@ -4,14 +4,11 @@
   "parameters": {
     "keyVaultName": {
       "type": "string",
-      "defaultValue": "somekeyvault12",
-      "metadata": {
-        "description": "The name of the function app that you wish to create."
-      }
+      "defaultValue": "[concat('sampleFunc', uniqueString(resourceGroup().name))]"
     },
     "appName": {
       "type": "string",
-      "defaultValue": "asisamplefunctionapp6",
+      "defaultValue": "[concat('sampleFunc', uniqueString(resourceGroup().name))]",
       "metadata": {
         "description": "The name of the function app that you wish to create."
       }
@@ -95,6 +92,16 @@
       "metadata": {
         "description": "WebP Function Default Key Name."
       }
+    },
+    "functionPackageUri": {
+      "type": "string",
+      "defaultValue": "https://asidevopsaccount.blob.core.windows.net/deployments/webp-converter/publish.zip?sp=r&st=2020-01-27T16:09:46Z&se=2021-01-28T00:09:46Z&spr=https&sv=2019-02-02&sr=b&sig=ljsKq2CMANtF74jF3PVDzoc04cLZfAuLIn8noWPXoOE%3D",
+      "metadata": {
+        "description": "WebP Function Deployment Package Url."
+      }
+    },
+    "keyVaultPrincipleId": {
+      "type": "string"
     }
   },
   "variables": {
@@ -105,9 +112,33 @@
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "functionWorkerRuntime": "[parameters('runtime')]",
     "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyVaultName'), '.vault.azure.net/secrets/', parameters('BlobStorageConnectionStringSecretKey'))]",
-    "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+    "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+    "addKeyVaultTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault.json"
   },
   "resources": [
+    {
+      "apiVersion": "2015-01-01",
+      "name": "addKeyVault",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[variables('addKeyVaultTemplatelink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[parameters('keyVaultName')]"
+          },
+          "objectId": {
+            "value": "[parameters('keyVaultPrincipleId')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('storageAccountName')]",
@@ -141,9 +172,9 @@
       "name": "[variables('functionAppName')]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
-       "identity": {
-                "type": "SystemAssigned"
-            },
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
@@ -210,20 +241,34 @@
             }
           ]
         }
+      },
+      "resources": [
+        {
+          "name": "MSDeploy",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "packageUri": "[concat(parameters('functionPackageUri'))]"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "name": "[concat(parameters('keyVaultName'), '/', parameters('webpFunctionSecretName'))]",
+      "apiVersion": "2018-02-14",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('functionAppId')]"
+      ],
+      "properties": {
+        "value": "[listkeys(concat(variables('functionAppId'), '/host/default/'),'2016-08-01').functionKeys.default]"
       }
     },
-    //  {
-    //   "type": "Microsoft.KeyVault/vaults/secrets",
-    //   "name": "[resourceGroup('').(concat(parameters('keyVaultName'), '/', parameters('webpFunctionSecretName'))]",
-    //   "apiVersion": "2018-02-14",
-    //   "location": "[parameters('location')]",
-    //   "dependsOn": [
-    //     "[variables('functionAppId')]"
-    //   ],
-    //   "properties": {
-    //     "value": "[listkeys(concat(variables('functionAppId'), '/host/default/'),'2016-08-01').functionKeys.default]"
-    //   }
-    // },
     {
       "apiVersion": "2018-05-01-preview",
       "name": "[variables('applicationInsightsName')]",
