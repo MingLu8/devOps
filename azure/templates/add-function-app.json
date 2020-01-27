@@ -95,6 +95,9 @@
             "metadata": {
                 "description": "WebP Function Default Key Name."
             }
+        },
+        "functionPackageUri": {
+            "type": "string"
         }
     },
     "variables": {
@@ -210,7 +213,21 @@
                         }
                     ]
                 }
-            }
+            },
+            "resources": [
+                {
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "packageUri": "[concat(parameters('functionPackageUri'))]"
+                    }
+                }
+            ]
         },
         {
             "apiVersion": "2018-05-01-preview",

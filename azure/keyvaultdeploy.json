@@ -4,6 +4,7 @@
   "parameters": {
     "keyVaultName": {
       "type": "string",
+      "defaultValue": "[concat('sampleVault', uniqueString(resourceGroup().name))]",
       "metadata": {
         "description": "Specifies the name of the key vault."
       }

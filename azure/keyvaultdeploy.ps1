@@ -59,5 +59,5 @@ New-AzResourceGroupDeployment `
   -ResourceGroupName $resourceGroup `
   -TemplateFile $templateFile `
   -TemplateParameterFile $templateParameterFile `
-  -keyVaultName $keyVaultName `
-#  -Debug
+  # -keyVaultName $keyVaultName `
+  #  -Debug
