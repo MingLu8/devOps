@@ -7,6 +7,11 @@
             "defaultValue": {
             }
         },
+        "userAppSettings": {
+            "type": "object",
+            "defaultValue": {
+            }
+        },
         "functionAppName": {
             "type": "string",
             "defaultValue": "[concat('funcapp', uniqueString(resourceGroup().name))]",
@@ -164,7 +169,7 @@
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "siteConfig": {
-                    "appSettings": "[union(variables('defaultAppSettings'), parameters('appSettings'))]"
+                    "appSettings": "[union(variables('defaultAppSettings'), parameters('appSettings'), parameters('userAppSettings'))]"
                 }
             } //,
             // "resources": [
