@@ -14,7 +14,7 @@
     "resources": [
         {
             "type": "Microsoft.Web/sites/config",
-            "name": "[concat('Microsoft.Web/sites/', parameters('functionAppName'), '/appsettings')]",
+            "name": "[concat(parameters('functionAppName'), '/appsettings')]",
             "apiVersion": "2019-08-01",
             "tags": {
                 "displayName": "WebAppSettings"
