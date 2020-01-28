@@ -125,20 +125,7 @@
             "FUNCTIONS_WORKER_RUNTIME": "dotnet"
         }
     },
-    "resources": [
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('storageAccountName')]",
-            "apiVersion": "2019-04-01",
-            "location": "[parameters('location')]",
-            "kind": "StorageV2",
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "sku": {
-                "name": "[parameters('storageAccountType')]"
-            }
-        },
+    "resources": [       
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
