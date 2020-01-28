@@ -210,12 +210,7 @@
                         {
                             "name": "webpFunctionSecretName",
                             "value": "[parameters('webpFunctionSecretName')]"
-                        },
-                        {
-                            "name": "webpFunctionKey",
-                            "value": "[reference(resourceid('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), 'webpFunctionKeyUri'), '2018-02-14').secretUriWithVersion]"
                         }
-
                     ]
                 }
             },
