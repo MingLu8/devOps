@@ -150,12 +150,12 @@
                 "type": "SystemAssigned"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
             ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "siteConfig": {
-                    "appSettings": "[union(variables('defaultAppSettings'), parameters('appSettings'), parameters('userAppSettings'))]"
+                    "appSettings": "[variables('defaultAppSettings')]"
                 }
             } //,
             // "resources": [
