@@ -7,7 +7,7 @@
             "defaultValue": {
             }
         },
-        "appName": {
+        "functionAppName": {
             "type": "string",
             "defaultValue": "[concat('funcapp', uniqueString(resourceGroup().name))]",
             "metadata": {
@@ -106,15 +106,28 @@
         }
     },
     "variables": {
-        "functionAppName": "[parameters('appName')]",
-        "hostingPlanName": "[parameters('appName')]",
+        "functionAppName": "[parameters('functionAppName')]",
+        "hostingPlanName": "[parameters('functionAppName')]",
         "appInsightsInstrumentationKey": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('appInsightsInstrumentationSecretKey'), ')')]",
-        "storageAccountName": "[parameters('appName')]",
+        "storageAccountName": "[parameters('functionAppName')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "functionWorkerRuntime": "[parameters('runtime')]",
         "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
-        "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-
+        "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+        "defaultAppSettings": [
+            {
+                "name": "WEBSITE_CONTENTSHARE",
+                "value": "[toLower(parameters('functionAppName'))]"
+            },
+            {
+                "name": "FUNCTIONS_EXTENSION_VERSION",
+                "value": "~3"
+            },
+            {
+                "name": "FUNCTIONS_WORKER_RUNTIME",
+                "value": "dotnet"
+            }
+        ]
     },
     "resources": [
         {
@@ -160,64 +173,7 @@
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "siteConfig": {
-                    "appSettings": [
-                        {
-                            "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-                        },
-                        {
-                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-                        },
-                        {
-                            "name": "WEBSITE_CONTENTSHARE",
-                            "value": "[toLower(variables('functionAppName'))]"
-                        },
-                        {
-                            "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~3"
-                        },
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[variables('appInsightsInstrumentationKey')]"
-                        },
-                        {
-                            "name": "FUNCTIONS_WORKER_RUNTIME",
-                            "value": "[variables('functionWorkerRuntime')]"
-                        },
-                        {
-                            "name": "KeepWarmTimerSchedule",
-                            "value": "[parameters('KeepWarmTimerSchedule')]"
-                        },
-                        {
-                            "name": "WebPFunctionProtocol",
-                            "value": "[parameters('WebPFunctionProtocol')]"
-                        },
-                        {
-                            "name": "BlobStorageContainerName",
-                            "value": "[parameters('BlobStorageContainerName')]"
-                        },
-                        {
-                            "name": "BlobStorageConnectionString",
-                            "value": "[variables('BlobStorageConnectionString')]"
-                        },
-                        {
-                            "name": "MaintainAspectRatio",
-                            "value": "[parameters('MaintainAspectRatio')]"
-                        },
-                        {
-                            "name": "ImageCacheTimeInSeconds",
-                            "value": "[parameters('ImageCacheTimeInSeconds')]"
-                        },
-                        {
-                            "name": "WebPFunctionHostName",
-                            "value": "[concat(variables('functionAppName'), '.azurewebsites.net')]"
-                        },
-                        {
-                            "name": "webpFunctionSecretName",
-                            "value": "[parameters('webpFunctionSecretName')]"
-                        }
-                    ]
+                    "appSettings": "[union(variables('defaultAppSettings'), parameters('appSettings'))]"
                 }
             } //,
             // "resources": [
