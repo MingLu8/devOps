@@ -157,39 +157,35 @@
             ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                "siteConfig": {
-                    "appSettings": "[variables('defaultAppSettings')]"
+            },
+            "resources": [
+                {
+                    "type": "Microsoft.Web/sites/config",
+                    "name": "[concat(variables('functionAppName'), '/appsettings')]",
+                    "apiVersion": "2019-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "WebAppSettings"
+                    },
+                    "properties": "[variables('defaultAppSettings')]"
                 }
-            } //,
-            // "resources": [
-
-            //     {
-            //         "name": "MSDeploy",
-            //         "type": "extensions",
-            //         "location": "[resourceGroup().location]",
-            //         "apiVersion": "2015-08-01",
-            //         "dependsOn": [
-            //             "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
-            //         ],
-            //         "properties": {
-            //             "packageUri": "[concat(parameters('functionPackageUri'))]"
-            //         }
-            //     }
-            // ]
+                //     {
+                //         "name": "MSDeploy",
+                //         "type": "extensions",
+                //         "location": "[resourceGroup().location]",
+                //         "apiVersion": "2015-08-01",
+                //         "dependsOn": [
+                //             "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+                //         ],
+                //         "properties": {
+                //             "packageUri": "[concat(parameters('functionPackageUri'))]"
+                //         }
+                //     }
+            ]
         }
-        // ,
-        // {
-        //     "type": "Microsoft.Web/sites/config",
-        //     "name": "[concat(variables('functionAppName'), '/appsettings')]",
-        //     "apiVersion": "2019-08-01",
-        //     "dependsOn": [
-        //         "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
-        //     ],
-        //     "tags": {
-        //         "displayName": "WebAppSettings"
-        //     },
-        //     "properties": "[parameters('appSettings')]"
-        // }
+
     ],
     "outputs": {
         "functionDefaultKey": {
