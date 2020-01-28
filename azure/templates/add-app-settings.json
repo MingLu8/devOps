@@ -14,11 +14,8 @@
     "resources": [
         {
             "type": "Microsoft.Web/sites/config",
-            "name": "[concat(parameters('functionAppName'), '/appsettings')]",
+            "name": "[concat('Microsoft.Web/sites', parameters('functionAppName'), '/appsettings')]",
             "apiVersion": "2019-08-01",
-            "dependsOn": [
-                "[resourceId(subscription().subscriptionId, resourceGroup().name, 'Microsoft.Web/sites', parameters('functionAppName'))]"
-            ],
             "tags": {
                 "displayName": "WebAppSettings"
             },
