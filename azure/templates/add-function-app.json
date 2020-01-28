@@ -107,7 +107,7 @@
         "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "functionWorkerRuntime": "[parameters('runtime')]",
-        "BlobStorageConnectionString": "[parameters('BlobStorageConnectionStringSecretKey')]",
+        "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'))]",
         "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
     },
     "resources": [
