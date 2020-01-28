@@ -114,20 +114,11 @@
         "functionWorkerRuntime": "[parameters('runtime')]",
         "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
         "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
-        "defaultAppSettings": [
-            {
-                "name": "WEBSITE_CONTENTSHARE",
-                "value": "[toLower(parameters('functionAppName'))]"
-            },
-            {
-                "name": "FUNCTIONS_EXTENSION_VERSION",
-                "value": "~3"
-            },
-            {
-                "name": "FUNCTIONS_WORKER_RUNTIME",
-                "value": "dotnet"
-            }
-        ]
+        "defaultAppSettings": {
+            "WEBSITE_CONTENTSHARE": "[toLower(parameters('functionAppName'))]",
+            "FUNCTIONS_EXTENSION_VERSION": "~3",
+            "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+        }
     },
     "resources": [
         {
