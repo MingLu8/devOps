@@ -2,6 +2,11 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "appSettings": {
+            "type": "object",
+            "defaultValue": {
+            }
+        },
         "appName": {
             "type": "string",
             "defaultValue": "[concat('funcapp', uniqueString(resourceGroup().name))]",
@@ -104,11 +109,12 @@
         "functionAppName": "[parameters('appName')]",
         "hostingPlanName": "[parameters('appName')]",
         "appInsightsInstrumentationKey": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('appInsightsInstrumentationSecretKey'), ')')]",
-        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]",
+        "storageAccountName": "[parameters('appName')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "functionWorkerRuntime": "[parameters('runtime')]",
         "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
         "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+
     },
     "resources": [
         {
@@ -213,22 +219,36 @@
                         }
                     ]
                 }
-            },
-            "resources": [
-                {
-                    "name": "MSDeploy",
-                    "type": "extensions",
-                    "location": "[resourceGroup().location]",
-                    "apiVersion": "2015-08-01",
-                    "dependsOn": [
-                        "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
-                    ],
-                    "properties": {
-                        "packageUri": "[concat(parameters('functionPackageUri'))]"
-                    }
-                }
-            ]
+            } //,
+            // "resources": [
+
+            //     {
+            //         "name": "MSDeploy",
+            //         "type": "extensions",
+            //         "location": "[resourceGroup().location]",
+            //         "apiVersion": "2015-08-01",
+            //         "dependsOn": [
+            //             "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+            //         ],
+            //         "properties": {
+            //             "packageUri": "[concat(parameters('functionPackageUri'))]"
+            //         }
+            //     }
+            // ]
         }
+        // ,
+        // {
+        //     "type": "Microsoft.Web/sites/config",
+        //     "name": "[concat(variables('functionAppName'), '/appsettings')]",
+        //     "apiVersion": "2019-08-01",
+        //     "dependsOn": [
+        //         "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+        //     ],
+        //     "tags": {
+        //         "displayName": "WebAppSettings"
+        //     },
+        //     "properties": "[parameters('appSettings')]"
+        // }
     ],
     "outputs": {
         "functionDefaultKey": {
