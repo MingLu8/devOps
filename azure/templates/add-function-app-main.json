@@ -117,7 +117,9 @@
                         "value": "[parameters('appSettings')]"
                     },
                     "appSettings": {
-                        "value": {                           
+                        "value": {
+                            "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=funcapp2wvuxu36usw6g;AccountKey=G0N9+SrMAozrehzRZdHdIsscNz5h/Rv8KnDBg0ZpGHbsCSRJ9VJyQE4UF/NvjfVGC0cFSiwk/ICp0H8TbALOGQ==;EndpointSuffix=core.windows.net",
+                            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;AccountName=funcapp2wvuxu36usw6g;AccountKey=G0N9+SrMAozrehzRZdHdIsscNz5h/Rv8KnDBg0ZpGHbsCSRJ9VJyQE4UF/NvjfVGC0cFSiwk/ICp0H8TbALOGQ==;EndpointSuffix=core.windows.net",                  
                             "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('appInsightsInstrumentationSecretKey')]",
                             "WebPStorageConnectionString": "[parameters('BlobStorageConnectionStringSecretKey')]"
                         }
