@@ -122,7 +122,8 @@
         "defaultAppSettings": {
             "WEBSITE_CONTENTSHARE": "[toLower(parameters('functionAppName'))]",
             "FUNCTIONS_EXTENSION_VERSION": "~3",
-            "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+            "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+            "someSettings": "somevalue"
         }
     },
     "resources": [

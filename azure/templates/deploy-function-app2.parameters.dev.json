@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appSettings": {
+      "value": {
+        "setting1": "1",
+        "setting2": "2",
+        "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=funcapp2wvuxu36usw6g;AccountKey=G0N9+SrMAozrehzRZdHdIsscNz5h/Rv8KnDBg0ZpGHbsCSRJ9VJyQE4UF/NvjfVGC0cFSiwk/ICp0H8TbALOGQ==;EndpointSuffix=core.windows.net",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;AccountName=funcapp2wvuxu36usw6g;AccountKey=G0N9+SrMAozrehzRZdHdIsscNz5h/Rv8KnDBg0ZpGHbsCSRJ9VJyQE4UF/NvjfVGC0cFSiwk/ICp0H8TbALOGQ==;EndpointSuffix=core.windows.net"
+      }
+    }
+    // "adminPassword": {
+    //     "reference": {
+    //         "keyVault": {
+    //             "id": "/subscriptions/<subscription-id>/resourceGroups/<rg-name>/providers/Microsoft.KeyVault/vaults/<vault-name>"
+    //         },
+    //         "secretName": "ExamplePassword"
+    //     }
+    // },
+  }
+}

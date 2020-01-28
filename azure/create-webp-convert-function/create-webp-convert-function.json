@@ -3,6 +3,9 @@
     "contentVersion": "1.0.0.0",
     "apiProfile": "2018-06-01-profile",
     "parameters": {
+        "AppInsightInstrumentionKey":{
+            "type": "string"
+        },
         "StorageAccountName": {
             "type": "string",
             "defaultValue": "[concat('storage', uniqueString(resourceGroup().name))]"
@@ -50,74 +53,7 @@
         "WebPFunctionKey": "WebPFunctionKey",
         "WebPStorageSecret": "WebPStorageSecret"
     },
-    "resources": [
-        {
-            "apiVersion": "2017-05-10",
-            "name": "addKeyVault",
-            "type": "Microsoft.Resources/deployments",
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[variables('addKeyVaultTemplatelink')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "objectId": {
-                        "value": "[parameters('keyVaultPrincipleId')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2017-05-10",
-            "name": "addStorage",
-            "type": "Microsoft.Resources/deployments",
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[variables('addStorageTemplatelink')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "StorageAccountName": {
-                        "value": "[parameters('StorageAccountName')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2017-05-10",
-            "name": "addSecretWebPStorageSecret",
-            "type": "Microsoft.Resources/deployments",
-            "dependsOn": [
-                "addKeyVault",
-                "addStorage"
-            ],
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[variables('addSecretTemplatelink')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "secretName": {
-                        "value": "[variables('WebPStorageSecret')]"
-                    },
-                    "secretValue": {
-                        "value": "[reference('addStorage').outputs.storageAccountConnectionString.value]"
-                    }
-                }
-            }
-        },
+    "resources": [             
         {
             "apiVersion": "2017-05-10",
             "name": "addWebpFunction",
