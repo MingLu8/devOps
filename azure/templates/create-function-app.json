@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "apiProfile": "2018-06-01-profile",
     "parameters": {
-        "templateBaseUrl":{
+        "templateBaseUrl": {
             "type": "string"
         },
         "functionPackageUri": {
@@ -13,6 +13,11 @@
             "type": "string"
         },
         "appSettings": {
+            "type": "object",
+            "defaultValue": {
+            }
+        },
+        "userAppSettings": {
             "type": "object",
             "defaultValue": {
             }
@@ -63,7 +68,7 @@
     },
     "variables": {
         "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), 'add-secret-to-key-vault.json')]",
-        "addFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), 'create-function-app-host.json')]",
+        "addFunctionAppHostTemplateLink": "[concat(parameters('templateBaseUrl'), 'create-function-app-host.json')]",
         "addKeyVaultSecretAccessPolicyTemplatelink": "[concat(parameters('templateBaseUrl'), 'add-key-vault-access-policy.json')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
         "addFunction": "addFunction"
@@ -92,18 +97,15 @@
             "properties": {
                 "mode": "incremental",
                 "templateLink": {
-                    "uri": "[variables('addFunctionAppTemplatelink')]",
+                    "uri": "[variables('addFunctionAppHostTemplateLink')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
                     "functionAppName": {
                         "value": "[parameters('functionAppName')]"
                     },
-                    "functionPackageUri": {
-                        "value": "[parameters('functionPackageUri')]"
-                    },
                     "userAppSettings": {
-                        "value": "[parameters('appSettings')]"
+                        "value": "[union(parameters('appSettings'), parameters('userAppSettings'))]"
                     },
                     "appSettings": {
                         "value": {
