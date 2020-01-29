@@ -155,6 +155,19 @@
                 }
             }
         }
-
-    ]
+    ],
+    "outputs": {
+        "keyVaultName": {
+            "type": "string",
+            "value": "[parameters('keyVaultName')]"
+        },
+        "AppInsightsInstrumentationKey": {
+            "type": "string",
+            "value": "[reference(resourceid(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), 'WebPAppInsightInstrumentationKey'), '2018-02-14').secretUriWithVersion]"
+        },
+        "BlobStorageConnectionString": {
+            "type": "string",
+            "value": "[reference(resourceid(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), 'WebPStorageConnectionString'), '2018-02-14').secretUriWithVersion]"
+        }
+    }
 }
