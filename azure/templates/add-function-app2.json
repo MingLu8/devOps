@@ -168,19 +168,19 @@
                         "displayName": "WebAppSettings"
                     },
                     "properties": "[union(variables('defaultAppSettings'), parameters('appSettings'), parameters('userAppSettings'))]"
+                },
+                {
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "packageUri": "[concat(parameters('functionPackageUri'))]"
+                    }
                 }
-                //     {
-                //         "name": "MSDeploy",
-                //         "type": "extensions",
-                //         "location": "[resourceGroup().location]",
-                //         "apiVersion": "2015-08-01",
-                //         "dependsOn": [
-                //             "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
-                //         ],
-                //         "properties": {
-                //             "packageUri": "[concat(parameters('functionPackageUri'))]"
-                //         }
-                //     }
             ]
         }
 
