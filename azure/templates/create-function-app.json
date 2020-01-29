@@ -3,6 +3,9 @@
     "contentVersion": "1.0.0.0",
     "apiProfile": "2018-06-01-profile",
     "parameters": {
+        "templateBaseUrl":{
+            "type": "string"
+        },
         "functionPackageUri": {
             "type": "string"
         },
@@ -20,12 +23,12 @@
             "metadata": {
                 "description": "The name of the function app that you wish to create."
             }
-        },        
+        },
         "StorageAccountName": {
             "type": "string",
             "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().name))]"
         },
-        
+
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
@@ -59,11 +62,11 @@
         }
     },
     "variables": {
-        "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json",
-        "addFunctionAppTemplateLink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-function-app2.json",
-        "addKeyVaultSecretAccessPolicyTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault-access-policy.json",
+        "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), 'add-secret-to-key-vault.json')]",
+        "addFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), 'create-function-app-host.json')]",
+        "addKeyVaultSecretAccessPolicyTemplatelink": "[concat(parameters('templateBaseUrl'), 'add-key-vault-access-policy.json')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
-        "addFunction":"addFunction"
+        "addFunction": "addFunction"
     },
     "resources": [
         {
@@ -105,7 +108,7 @@
                     "appSettings": {
                         "value": {
                             "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2019-06-01').keys[0].value)]",
-                            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2019-06-01').keys[0].value)]"                           
+                            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2019-06-01').keys[0].value)]"
                         }
                     }
                 }
