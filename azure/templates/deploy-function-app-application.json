@@ -1,0 +1,26 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "functionAppName": {
+            "type": "string"
+        },
+        "functionPackageUri": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('functionAppName'), '/MSDeploy')]",
+            "type": "Microsoft.Web/sites/extensions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-08-01",
+            "dependsOn": [
+                "addSecretFunctionDefaultKey"
+            ],
+            "properties": {
+                "packageUri": "[concat(parameters('functionPackageUri'))]"
+            }
+        }
+    ]
+}
