@@ -183,5 +183,15 @@
                 "packageUri": "[concat(parameters('functionPackageUri'))]"
             }
         }
-    ]
+    ],
+    "outputs": {
+        "functionDefaultKey": {
+            "type": "string",
+            "value": "[reference(variables('addFunction')).outputs.functionDefaultKey.value]"
+        },
+        "functionPrincipleId": {
+            "type": "string",
+            "value": "[reference(variables('addFunction')).outputs.functionPrincipleId.value]"
+        }
+    }
 }
