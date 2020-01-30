@@ -10,7 +10,8 @@
             "type": "string"
         },
         "keyVaultName": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "[concat('kv-func-app', uniqueString(resourceGroup().id))]"
         },
         "appSettings": {
             "type": "object",

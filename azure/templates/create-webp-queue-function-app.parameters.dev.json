@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "templateBaseUrl": {
+      "value": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/"
+    },
+    "appSettings": {
+      "value": {
+        "webpQualityForPngImage": 100,
+        "webpRemoveTransparency": "True",
+        "WebPFunctionProtocol": "http",
+        "sourceImageUrl": "https://media.asicdn.com/images/orig",
+        "BlobStorageContainerName": "originals",
+        "QueueName": "asi-bitmap-to-webp"
+      }
+    }
+  }
+  //   ,
+  //   "BlobStorageConnectionStringSecretKey": {
+  //     "reference": {
+  //       "keyVault": {
+  //         "id": "/subscriptions/8f68529b-8195-4328-8be3-cc04db636273/resourceGroups/deploy-webp-group-ming13/providers/Microsoft.KeyVault/vaults/kv-func-appiq6utczxrw2yi"
+  //       },
+  //       "secretName": "WebPStorageConnectionString"
+  //     }
+  //   }
+}

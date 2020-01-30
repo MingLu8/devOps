@@ -1,0 +1,154 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-06-01-profile",
+    "parameters": {
+        "templateBaseUrl": {
+            "type": "string"
+        },
+        "webpQueueFunctionPackageUri": {
+            "type": "string"
+        },
+        "webpQueueFunctionAppName": {
+            "type": "string",
+            "defaultValue": "[concat('webp-queue-worker-app-', uniqueString(resourceGroup().id))]"
+        },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('kv-func-app', uniqueString(resourceGroup().id))]"
+        },
+        "BlobStorageConnectionStringSecretKey": {
+            "type": "string"
+        },
+        "userAppSettings": {
+            "type": "object",
+            "defaultValue": {
+            }
+        },
+        "appSettings": {
+            "type": "object",
+            "defaultValue": {
+            }
+        },
+        "applicationInsightsName": {
+            "type": "string",
+            "defaultValue": "[concat('ai-webp-', uniqueString(resourceGroup().id))]"
+        },
+        "webPFunctionHostName": {
+            "type": "string",
+            "defaultValue": "[concat('func-app-', uniqueString(resourceGroup().id), '.azurewebsites.net')]"
+        },
+
+        "webPQueueStorageAccountName": {
+            "type": "string",
+            "defaultValue": "[concat('webpqueue', uniqueString(parameters('webpQueueFunctionAppName')))]"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "secretsPermissions": {
+            "type": "array",
+            "defaultValue": [
+                "Get",
+                "List",
+                "Set"
+            ],
+            "metadata": {
+                "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
+            }
+        },
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS"
+            ],
+            "metadata": {
+                "description": "Storage Account type"
+            }
+        }
+    },
+    "variables": {
+        "createFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-function-app.json')]",
+        "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
+        "createWebPQueueFunctionApp": "createWebPQueueFunctionApp",
+        "queueStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('webPQueueStorageAccountName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('webPQueueStorageAccountName')]",
+            "apiVersion": "2019-04-01",
+            "location": "[parameters('location')]",
+            "kind": "StorageV2",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[variables('createWebPQueueFunctionApp')]",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[parameters('webPQueueStorageAccountName')]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('createFunctionAppTemplateLink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "templateBaseUrl": {
+                        "value": "[parameters('templateBaseUrl')]"
+                    },
+                    "functionAppName": {
+                        "value": "[parameters('webpQueueFunctionAppName')]"
+                    },
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "functionPackageUri": {
+                        "value": "[parameters('webpQueueFunctionPackageUri')]"
+                    },
+                    "secretsPermissions": {
+                        "value": "[parameters('secretsPermissions')]"
+                    },
+                    "storageAccountType": {
+                        "value": "Standard_LRS"
+                    },
+                    "userAppSettings": {
+                        "value": "[union(parameters('appSettings'), parameters('userAppSettings'))]"
+                    },
+                    "appSettings": {
+                        "value": {
+                            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]",
+                            "BlobStorageConnectionString": "[variables('BlobStorageConnectionString')]",
+                            "QueueConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('webPQueueStorageAccountName'), ';AccountKey=', listKeys(variables('queueStorageAccountid'),'2019-06-01').keys[0].value)]",
+                            "WebPFunctionHostName": "[parameters('webPFunctionHostName')]"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "webPQueueFunctionDefaultKey": {
+            "type": "string",
+            "value": "[reference(variables('createWebPQueueFunctionApp')).outputs.functionDefaultKey.value]"
+        },
+        "webPQueueFunctionPrincipleId": {
+            "type": "string",
+            "value": "[reference(variables('createWebPQueueFunctionApp')).outputs.functionPrincipleId.value]"
+        }
+    }
+}
