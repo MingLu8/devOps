@@ -43,7 +43,7 @@
         "addStorageTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-storage-account.json')]",
         "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-secret-to-key-vault.json')]",
 
-        "applicationInsightsName": "[concat('webpinsights', uniqueString(resourceGroup().id))]",
+        "applicationInsightsName": "[concat('ai-webp-', uniqueString(resourceGroup().id))]",
         "WebPStorageConnectionString": "WebPStorageConnectionString",
         "WebPAppInsightInstrumentationKey": "WebPAppInsightInstrumentationKey"
     },
