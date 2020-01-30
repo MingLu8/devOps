@@ -9,6 +9,11 @@
         "BlobStorageConnectionStringSecretKey": {
             "type": "string"
         },
+        "userAppSettings": {
+            "type": "object",
+            "defaultValue": {
+            }
+        },
         "appSettings": {
             "type": "object",
             "defaultValue": {
@@ -119,7 +124,7 @@
                         "value": "Standard_LRS"
                     },
                     "userAppSettings": {
-                        "value": "[parameters('appSettings')]"
+                        "value": "[union(parameters('appSettings'), parameters('userAppSettings'))]"
                     },
                     "appSettings": {
                         "value": {
