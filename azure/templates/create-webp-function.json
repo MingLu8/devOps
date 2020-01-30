@@ -136,5 +136,15 @@
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+        "functionDefaultKey": {
+            "type": "string",
+            "value": "[reference(variables('createFunctionApp')).outputs.functionDefaultKey.value]"
+        },
+        "functionPrincipleId": {
+            "type": "string",
+            "value": "[reference(variables('createFunctionApp')).outputs.functionPrincipleId.value]"
+        }
+    }
 }
