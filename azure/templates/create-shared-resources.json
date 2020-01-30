@@ -160,7 +160,7 @@
             "value": "[parameters('applicationInsightsName')]"
         },
         "AppInsightsInstrumentationKey": {
-            "type": "securestring",
+            "type": "string",
             "value": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
         },
         "AppInsightsInstrumentationSecretKey": {
