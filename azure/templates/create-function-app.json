@@ -67,9 +67,9 @@
         }
     },
     "variables": {
-        "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), 'add-secret-to-key-vault.json')]",
-        "addFunctionAppHostTemplateLink": "[concat(parameters('templateBaseUrl'), 'create-function-app-host.json')]",
-        "addKeyVaultSecretAccessPolicyTemplatelink": "[concat(parameters('templateBaseUrl'), 'add-key-vault-access-policy.json')]",
+        "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-secret-to-key-vault.json')]",
+        "addFunctionAppHostTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-function-app-host.json')]",
+        "addKeyVaultSecretAccessPolicyTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-key-vault-access-policy.json')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
         "addFunction": "addFunction"
     },
