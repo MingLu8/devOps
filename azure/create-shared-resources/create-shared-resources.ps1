@@ -17,7 +17,7 @@ New-AzResourceGroupDeployment `
     -ResourceGroupName $resourceGroup `
     -TemplateFile $templateFile `
     -keyVaultPrincipleId $userPrinciple `
-    -debug
+    #-debug
 
     
 # $secretId = az keyvault secret show --vault-name $keyVaultName --name webpFunctionKey | ConvertFrom-Json | select -ExpandProperty Id

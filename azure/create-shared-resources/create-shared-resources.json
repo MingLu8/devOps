@@ -9,7 +9,7 @@
         },
         "keyVaultName": {
             "type": "string",
-            "defaultValue": "[concat('webp', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('kv-webp-', uniqueString(resourceGroup().name))]"
         },
         "keyVaultPrincipleId": {
             "type": "string"
@@ -39,7 +39,9 @@
         "addKeyVaultTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault.json",
         "addStorageTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-storage-account.json",
         "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json",
-        "applicationInsightsName": "[concat('webpinsights', uniqueString(resourceGroup().name))]"
+        "applicationInsightsName": "[concat('webpinsights', uniqueString(resourceGroup().name))]",
+        "WebPStorageConnectionString": "WebPStorageConnectionString",
+        "WebPAppInsightInstrumentationKey": "WebPAppInsightInstrumentationKey"
     },
     "resources": [
         {
@@ -120,7 +122,7 @@
                         "value": "[parameters('keyVaultName')]"
                     },
                     "secretName": {
-                        "value": "WebPStorageConnectionString"
+                        "value": "[variables('WebPStorageConnectionString')]"
                     },
                     "secretValue": {
                         "value": "[reference('addStorage').outputs.storageAccountConnectionString.value]"
@@ -147,7 +149,7 @@
                         "value": "[parameters('keyVaultName')]"
                     },
                     "secretName": {
-                        "value": "WebPAppInsightInstrumentationKey"
+                        "value": "[variables('WebPAppInsightInstrumentationKey')]"
                     },
                     "secretValue": {
                         "value": "[reference(resourceId('microsoft.insights/components/', variables('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
@@ -161,13 +163,17 @@
             "type": "string",
             "value": "[parameters('keyVaultName')]"
         },
-        "AppInsightsInstrumentationKey": {
+        "appInsightsName": {
             "type": "string",
-            "value": "[reference(resourceid(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), 'WebPAppInsightInstrumentationKey'), '2018-02-14').secretUriWithVersion]"
+            "value": "[variables('applicationInsightsName')]"
         },
-        "BlobStorageConnectionString": {
+        "AppInsightsInstrumentationSecretKey": {
             "type": "string",
-            "value": "[reference(resourceid(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), 'WebPStorageConnectionString'), '2018-02-14').secretUriWithVersion]"
+            "value": "[reference('addSecretAppInsightSecret').outputs.secretUri.value]"
+        },
+        "BlobStorageConnectionStringSecretKey": {
+            "type": "string",
+            "value": "[reference('addSecretWebPStorageSecret').outputs.secretUri.value]"
         }
     }
 }
