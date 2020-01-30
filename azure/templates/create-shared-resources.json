@@ -10,6 +10,10 @@
             "type": "string",
             "defaultValue": "[concat('webp', uniqueString(resourceGroup().id))]"
         },
+        "applicationInsightsName": {
+            "type": "string",
+            "defaultValue": "[concat('ai-webp-', uniqueString(resourceGroup().id))]"
+        },
         "keyVaultName": {
             "type": "string",
             "defaultValue": "[concat('kv-webp-', uniqueString(resourceGroup().id))]"
@@ -40,21 +44,20 @@
         "addStorageTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-storage-account.json')]",
         "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-secret-to-key-vault.json')]",
 
-        "applicationInsightsName": "[concat('ai-webp-', uniqueString(resourceGroup().id))]",
         "WebPStorageConnectionString": "WebPStorageConnectionString",
         "WebPAppInsightInstrumentationKey": "WebPAppInsightInstrumentationKey"
     },
     "resources": [
         {
             "apiVersion": "2018-05-01-preview",
-            "name": "[variables('applicationInsightsName')]",
+            "name": "[parameters('applicationInsightsName')]",
             "type": "microsoft.insights/components",
             "location": "East US",
             "tags": {
-                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('applicationInsightsName'))]": "Resource"
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('applicationInsightsName'))]": "Resource"
             },
             "properties": {
-                "ApplicationId": "[variables('applicationInsightsName')]",
+                "ApplicationId": "[parameters('applicationInsightsName')]",
                 "Request_Source": "IbizaWebAppExtensionCreate"
             }
         },
@@ -125,7 +128,7 @@
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
                 "addKeyVault",
-                "[variables('applicationInsightsName')]"
+                "[parameters('applicationInsightsName')]"
             ],
             "properties": {
                 "mode": "incremental",
@@ -141,7 +144,7 @@
                         "value": "[variables('WebPAppInsightInstrumentationKey')]"
                     },
                     "secretValue": {
-                        "value": "[reference(resourceId('microsoft.insights/components/', variables('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
+                        "value": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
                     }
                 }
             }
@@ -154,11 +157,11 @@
         },
         "appInsightsName": {
             "type": "string",
-            "value": "[variables('applicationInsightsName')]"
+            "value": "[parameters('applicationInsightsName')]"
         },
         "AppInsightsInstrumentationKey": {
             "type": "securestring",
-            "value": "[reference(resourceId('microsoft.insights/components/', variables('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
+            "value": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
         },
         "AppInsightsInstrumentationSecretKey": {
             "type": "string",
