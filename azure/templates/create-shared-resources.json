@@ -150,7 +150,7 @@
     "outputs": {
         "keyVaultName": {
             "type": "string",
-            "value": "[reference('addKeyVaultTemplatelink').outputs.keyVaultName.value]"
+            "value": "[reference('addKeyVault').outputs.keyVaultName.value]"
         },
         "appInsightsName": {
             "type": "string",
