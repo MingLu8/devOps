@@ -5,11 +5,11 @@
     "parameters": {
         "StorageAccountName": {
             "type": "string",
-            "defaultValue": "[concat('webp', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('webp', uniqueString(resourceGroup().id))]"
         },
         "keyVaultName": {
             "type": "string",
-            "defaultValue": "[concat('kv-webp-', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('kv-webp-', uniqueString(resourceGroup().id))]"
         },
         "keyVaultPrincipleId": {
             "type": "string"
@@ -39,7 +39,7 @@
         "addKeyVaultTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault.json",
         "addStorageTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-storage-account.json",
         "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json",
-        "applicationInsightsName": "[concat('webpinsights', uniqueString(resourceGroup().name))]",
+        "applicationInsightsName": "[concat('webpinsights', uniqueString(resourceGroup().id))]",
         "WebPStorageConnectionString": "WebPStorageConnectionString",
         "WebPAppInsightInstrumentationKey": "WebPAppInsightInstrumentationKey"
     },

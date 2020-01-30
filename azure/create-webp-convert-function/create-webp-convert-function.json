@@ -3,12 +3,12 @@
     "contentVersion": "1.0.0.0",
     "apiProfile": "2018-06-01-profile",
     "parameters": {
-        "AppInsightInstrumentionKey":{
+        "AppInsightInstrumentionKey": {
             "type": "string"
         },
         "StorageAccountName": {
             "type": "string",
-            "defaultValue": "[concat('storage', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('storage', uniqueString(resourceGroup().id))]"
         },
         "keyVaultName": {
             "type": "string",
@@ -41,7 +41,7 @@
         },
         "appName": {
             "type": "string",
-            "defaultValue": "[concat('webpfunction', uniquestring(resourceGroup().name))]"
+            "defaultValue": "[concat('webpfunction', uniqueString(resourceGroup().id))]"
         }
     },
     "variables": {
@@ -53,7 +53,7 @@
         "WebPFunctionKey": "WebPFunctionKey",
         "WebPStorageSecret": "WebPStorageSecret"
     },
-    "resources": [             
+    "resources": [
         {
             "apiVersion": "2017-05-10",
             "name": "addWebpFunction",

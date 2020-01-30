@@ -12,7 +12,7 @@
         },
         "storageAccountName": {
             "type": "string",
-            "defaultValue": "[toLower(concat('storage2', uniqueString(resourceGroup().name)))]"
+            "defaultValue": "[toLower(concat('storage2', uniqueString(resourceGroup().id)))]"
         },
         "storageAccountSku": {
             "type": "string",

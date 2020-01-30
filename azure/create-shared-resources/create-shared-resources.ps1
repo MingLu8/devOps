@@ -1,5 +1,5 @@
 $userPrinciple = Get-AzADUser -UserPrincipalName mclu@asicentral.com | Select-Object -ExpandProperty Id
-$resourceGroup = "webp-group-ming"
+$resourceGroup = "webp-group-ming3"
 $location = "East US"
 $templateFile = ".\create-shared-resources.json"
 #$templateParameterFile = ".\keyvaultdeploy.parameters.json"

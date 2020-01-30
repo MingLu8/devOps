@@ -5,11 +5,11 @@
     "parameters": {
         "StorageAccountName": {
             "type": "string",
-            "defaultValue": "[concat('storage', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('storage', uniqueString(resourceGroup().id))]"
         },
         "keyVaultName": {
             "type": "string",
-            "defaultValue": "[concat('keyvalue', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('keyvalue', uniqueString(resourceGroup().id))]"
         },
         "keyVaultPrincipleId": {
             "type": "string"

@@ -24,14 +24,14 @@
         },
         "functionAppName": {
             "type": "string",
-            "defaultValue": "[concat('func-app-', uniqueString(resourceGroup().name))]",
+            "defaultValue": "[concat('func-app-', uniqueString(resourceGroup().id))]",
             "metadata": {
                 "description": "The name of the function app that you wish to create."
             }
         },
         "StorageAccountName": {
             "type": "string",
-            "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().id))]"
         },
 
         "location": {

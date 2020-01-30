@@ -10,7 +10,7 @@
         },
         "functionAppName": {
             "type": "string",
-            "defaultValue": "[concat('funcapp', uniqueString(resourceGroup().name))]",
+            "defaultValue": "[concat('func-app-', uniqueString(resourceGroup().id))]",
             "metadata": {
                 "description": "The name of the function app that you wish to create."
             }
@@ -20,11 +20,11 @@
         },
         "StorageAccountName": {
             "type": "string",
-            "defaultValue": "[concat('webp', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().id))]"
         },
         "keyVaultName": {
             "type": "string",
-            "defaultValue": "[concat('webp', uniqueString(resourceGroup().name))]"
+            "defaultValue": "[concat('kv-func-app', uniqueString(resourceGroup().id))]"
         },
         "keyVaultPrincipleId": {
             "type": "string"
@@ -49,8 +49,7 @@
             "defaultValue": [
                 "Get",
                 "List",
-                "Set",
-                "Delete"
+                "Set"
             ],
             "metadata": {
                 "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
@@ -75,14 +74,17 @@
         "addSecretTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-secret-to-key-vault.json",
         "addFunctionAppTemplateLink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-function-app2.json",
         "addAppSettingsTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-app-settings.json",
-        "applicationInsightsName": "[concat('webpinsights', uniqueString(resourceGroup().name))]",
-        "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "storageAccountName": "[parameters('functionAppName')]"
+        "addKeyVaultSecretAccessPolicyTemplatelink": "https://raw.githubusercontent.com/MingLu8/devOps/master/azure/templates/add-key-vault-access-policy.json",
+        "appInsightsInstrumentationKey": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('appInsightsInstrumentationSecretKey'), ')')]",
+        "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
+        "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+        "addFunction":"addFunction"
+
     },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('storageAccountName')]",
+            "name": "[parameters('storageAccountName')]",
             "apiVersion": "2019-04-01",
             "location": "[parameters('location')]",
             "kind": "StorageV2",
@@ -95,10 +97,10 @@
         },
         {
             "apiVersion": "2017-05-10",
-            "name": "addWebpFunction",
+            "name": "[variables('addFunction')]",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
-                "[variables('storageAccountName')]"
+                "[parameters('storageAccountName')]"
             ],
             "properties": {
                 "mode": "incremental",
@@ -118,85 +120,82 @@
                     },
                     "appSettings": {
                         "value": {
-                            "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=funcapp2wvuxu36usw6g;AccountKey=G0N9+SrMAozrehzRZdHdIsscNz5h/Rv8KnDBg0ZpGHbsCSRJ9VJyQE4UF/NvjfVGC0cFSiwk/ICp0H8TbALOGQ==;EndpointSuffix=core.windows.net",
-                            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;AccountName=funcapp2wvuxu36usw6g;AccountKey=G0N9+SrMAozrehzRZdHdIsscNz5h/Rv8KnDBg0ZpGHbsCSRJ9VJyQE4UF/NvjfVGC0cFSiwk/ICp0H8TbALOGQ==;EndpointSuffix=core.windows.net",                  
-                            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('appInsightsInstrumentationSecretKey')]",
-                            "WebPStorageConnectionString": "[parameters('BlobStorageConnectionStringSecretKey')]"
+                            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2019-06-01').keys[0].value)]",
+                            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2019-06-01').keys[0].value)]",
+                            "APPINSIGHTS_INSTRUMENTATIONKEY": "[variables('appInsightsInstrumentationKey')]",
+                            "WebPStorageConnectionString": "[variables('BlobStorageConnectionString')]",
+                            "WebPFunctionHostName": "[concat(parameters('functionAppName'), '.azurewebsites.net')]"
                         }
                     }
                 }
             }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addSecretAccessPolicy",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('addFunction')]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addKeyVaultSecretAccessPolicyTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "tenantId": {
+                        "value": "[parameters('tenantId')]"
+                    },
+                    "objectId": {
+                        "value": "[reference(variables('addFunction')).outputs.functionPrincipleId.value]"
+                    },
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secretsPermissions": {
+                        "value": "[parameters('secretsPermissions')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addSecretFunctionDefaultKey",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('addFunction')]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addSecretTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secretName": {
+                        "value": "[concat('funcKey', parameters('functionAppName'))]"
+                    },
+                    "secretValue": {
+                        "value": "[reference(variables('addFunction')).outputs.functionDefaultKey.value]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('functionAppName'), '/MSDeploy')]",
+            "type": "Microsoft.Web/sites/extensions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-08-01",
+            "dependsOn": [
+                "addSecretFunctionDefaultKey"
+            ],
+            "properties": {
+                "packageUri": "[concat(parameters('functionPackageUri'))]"
+            }
         }
-        // ,
-        // {
-        //     "apiVersion": "2017-05-10",
-        //     "name": "addAppSettings",
-        //     "type": "Microsoft.Resources/deployments",
-        //     "dependsOn": [
-        //         "addWebpFunction"
-        //     ],
-        //     "properties": {
-        //         "mode": "incremental",
-        //         "templateLink": {
-        //             "uri": "[variables('addAppSettingsTemplatelink')]",
-        //             "contentVersion": "1.0.0.0"
-        //         },
-        //         "parameters": {
-        //             "appSettings": {
-        //                 "value": "[parameters('appSettings')]"
-        //             },
-        //             "functionAppName": {
-        //                 "value": "[parameters('appName')]"
-        //             }
-        //         }
-        //     }
-        // }
-        // ,
-        // {
-        //     "type": "Microsoft.KeyVault/vaults/accessPolicies",
-        //     "name": "[concat(parameters('keyVaultName'), '/add')]",
-        //     "apiVersion": "2018-02-14",
-        //     "dependsOn": [
-        //         "addWebpFunction"
-        //     ],
-        //     "properties": {
-        //         "accessPolicies": [
-        //             {
-        //                 "tenantId": "[parameters('tenantId')]",
-        //                 "objectId": "[reference('addWebpFunction').outputs.functionPrincipleId.value]",
-        //                 "permissions": {
-        //                     "secrets": "[parameters('secretsPermissions')]"
-        //                 }
-        //             }
-        //         ]
-        //     }
-        // },
-        // {
-        //     "apiVersion": "2017-05-10",
-        //     "name": "addSecretFunctionDefaultKey",
-        //     "type": "Microsoft.Resources/deployments",
-        //     "dependsOn": [
-        //         "addKeyVault",
-        //         "addWebpFunction"
-        //     ],
-        //     "properties": {
-        //         "mode": "incremental",
-        //         "templateLink": {
-        //             "uri": "[variables('addSecretTemplatelink')]",
-        //             "contentVersion": "1.0.0.0"
-        //         },
-        //         "parameters": {
-        //             "keyVaultName": {
-        //                 "value": "[parameters('keyVaultName')]"
-        //             },
-        //             "secretName": {
-        //                 "value": "[variables('WebPFunctionKey')]"
-        //             },
-        //             "secretValue": {
-        //                 "value": "[reference('addWebpFunction').outputs.functionDefaultKey.value]"
-        //             }
-        //         }
-        //     }
-        // }
     ]
 }
