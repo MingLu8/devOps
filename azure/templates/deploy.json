@@ -9,7 +9,10 @@
         "templateBaseUrl": {
             "type": "string"
         },
-
+        "cdnEndpointName": {
+            "type": "string",
+            "defaultValue": "[concat('webp-', uniqueString(resourceGroup().id))]"
+        },
         // "BlobStorageConnectionStringSecretKey": {
         //     "type": "string"
         // },
@@ -97,11 +100,12 @@
 
         // "createWebPSharedResourcesTemplateLink":
         "addKeyVaultSecretAccessPolicyTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-key-vault-access-policy.json')]",
-        "createCdnTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/create-cdn-endpoint.json')]"
+        "createCdnTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/create-cdn-endpoint.json')]",
         // "createWebPFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-webp-function.json')]",
         // "createWebPFunctionAppParameterTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-webp-function', parameters('environment'), '.json')]",
         // "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
         // "createFunctionApp": "createFunctionApp"
+        "cdnProfileName": "[concat('webpcdn', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -250,9 +254,42 @@
                     }
                 }
             }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addCdn",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('createWebpFunction').name]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('createCdnTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "cdnEndPointOrigin": {
+                        "value": "[concat(parameters('functionAppName'), '.azurewebsites.net')]"
+                    },
+                    "cdnProfileName": {
+                        "value": "[variables('cdnProfileName')]"
+                    },
+                    "cdnEndpointName": {
+                        "value": "[parameters('cdnEndpointName')]"
+                    },
+                    "functionKey": {
+                        "value": "[reference(variables('createWebpFunction').name).outputs.functionDefaultKey.value]"
+                    }
+                }
+            }
         }
     ],
     "outputs": {
+        "cdnEndpoint": {
+            "type": "string",
+            "value": "[concat('https://', parameters('cdnEndpointName'), '.azureedge.net')]"
+        },
         "keyVaultName": {
             "type": "string",
             "value": "[reference(variables('webpShared').name).outputs.keyVaultName.value]"
