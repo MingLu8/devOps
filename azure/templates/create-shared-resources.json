@@ -14,9 +14,6 @@
             "type": "string",
             "defaultValue": "[concat('kv-webp-', uniqueString(resourceGroup().id))]"
         },
-        "keyVaultPrincipleId": {
-            "type": "string"
-        },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
