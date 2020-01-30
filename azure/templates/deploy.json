@@ -1,0 +1,238 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-06-01-profile",
+    "parameters": {
+        "userPrincipleId": {
+            "type": "string"
+        },
+        "templateBaseUrl": {
+            "type": "string"
+        },
+
+        // "BlobStorageConnectionStringSecretKey": {
+        //     "type": "string"
+        // },
+        // "appSettings": {
+        //     "type": "object",
+        //     "defaultValue": {
+        //     }
+        // },
+        // "applicationInsightsName": {
+        //     "type": "string"
+        // },
+        // "functionAppName": {
+        //     "type": "string",
+        //     "defaultValue": "[concat('func-app-', uniqueString(resourceGroup().id))]",
+        //     "metadata": {
+        //         "description": "The name of the function app that you wish to create."
+        //     }
+        // },
+        // "functionPackageUri": {
+        //     "type": "string"
+        // },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('kv-func-app', uniqueString(resourceGroup().id))]"
+        },
+        // "StorageAccountName": {
+        //     "type": "string",
+        //     "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().id))]"
+        // },
+        "tenantId": {
+            "type": "string",
+            "defaultValue": "[subscription().tenantId]"
+        },
+        "secretsPermissions": {
+            "type": "array",
+            "defaultValue": [
+                "Get",
+                "List",
+                "Set"
+            ],
+            "metadata": {
+                "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
+            }
+        },
+        // "storageAccountType": {
+        //     "type": "string",
+        //     "defaultValue": "Standard_LRS",
+        //     "allowedValues": [
+        //         "Standard_LRS",
+        //         "Standard_GRS",
+        //         "Standard_RAGRS"
+        //     ],
+        //     "metadata": {
+        //         "description": "Storage Account type"
+        //     }
+        // },
+        "environment": {
+            "type": "string",
+            "defaultValue": "dev",
+            "allowedValues": [
+                "dev",
+                "test",
+                "uat",
+                "prod"
+            ],
+            "metadata": {
+                "description": "deployment environment."
+            }
+        }
+    },
+    "variables": {
+        "webpShared": {
+            "name": "createSharedResource",
+            "template": "[concat(parameters('templateBaseUrl'), '/templates/create-shared-resources.json')]"
+        },
+        "createWebpFunction": {
+            "name": "createWebpFunction",
+            "template": "[concat(parameters('templateBaseUrl'), '/templates/create-webp-function.json')]"
+        },
+
+        // "createWebPSharedResourcesTemplateLink":
+        "addKeyVaultSecretAccessPolicyTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-key-vault-access-policy.json')]"
+        // "createWebPFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-webp-function.json')]",
+        // "createWebPFunctionAppParameterTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-webp-function', parameters('environment'), '.json')]",
+        // "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
+        // "createFunctionApp": "createFunctionApp"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-05-01",
+            "name": "[variables('webpShared').name]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('webpShared').template]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "templateBaseUrl": {
+                        "value": "[parameters('templateBaseUrl')]"
+                    },
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addSecretAccessPolicy",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('webpShared').name]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addKeyVaultSecretAccessPolicyTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "tenantId": {
+                        "value": "[parameters('tenantId')]"
+                    },
+                    "objectId": {
+                        "value": "[parameters('userPrincipleId')]"
+                    },
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secretsPermissions": {
+                        "value": "[parameters('secretsPermissions')]"
+                    }
+                }
+            }
+        }
+        // {
+        //     "type": "Microsoft.Storage/storageAccounts",
+        //     "name": "[parameters('storageAccountName')]",
+        //     "apiVersion": "2019-04-01",
+        //     "location": "[parameters('location')]",
+        //     "kind": "StorageV2",
+        //     "identity": {
+        //         "type": "SystemAssigned"
+        //     },
+        //     "sku": {
+        //         "name": "[parameters('storageAccountType')]"
+        //     }
+        // },
+        // {
+        //     "apiVersion": "2018-05-01",
+        //     "name": "[variables('createFunctionApp')]",
+        //     "type": "Microsoft.Resources/deployments",
+        //     "dependsOn": [
+        //         "[parameters('storageAccountName')]"
+        //     ],
+        //     "properties": {
+        //         "mode": "incremental",
+        //         "templateLink": {
+        //             "uri": "[variables('createWebPFunctionAppTemplateLink')]",
+        //             "contentVersion": "1.0.0.0"
+        //         },
+        //         "parametersLink": {
+        //             "uri": "[variables('createWebPFunctionAppParameterTemplateLink')]",
+        //             "contentVersion": "1.0.0.0"
+        //         },
+        //         "parameters": {
+        //             "templateBaseUrl": {
+        //                 "value": "[parameters('templateBaseUrl')]"
+        //             },
+        //             "functionAppName": {
+        //                 "value": "[parameters('functionAppName')]"
+        //             },
+        //             "keyVaultName": {
+        //                 "value": "[parameters('keyVaultName')]"
+        //             },
+        //             "location": {
+        //                 "value": "[parameters('location')]"
+        //             },
+        //             "functionPackageUri": {
+        //                 "value": "[parameters('functionPackageUri')]"
+        //             },
+        //             "secretsPermissions": {
+        //                 "value": "[parameters('secretsPermissions')]"
+        //             },
+        //             "storageAccountType": {
+        //                 "value": "Standard_LRS"
+        //             },
+        //             "userAppSettings": {
+        //                 "value": "[parameters('appSettings')]"
+        //             },
+        //             "appSettings": {
+        //                 "value": {
+        //                     "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]",
+        //                     "WebPStorageConnectionString": "[variables('BlobStorageConnectionString')]",
+        //                     "WebPFunctionHostName": "[concat(parameters('functionAppName'), '.azurewebsites.net')]"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+    ],
+    "outputs": {
+        "keyVaultName": {
+            "type": "string",
+            "value": "[reference(variables('webpShared').name).outputs.keyVaultName.value]"
+        },
+        "appInsightsName": {
+            "type": "string",
+            "value": "[reference(variables('webpShared').name).outputs.appInsightsName.value]"
+        },
+        // "AppInsightsInstrumentationKey": {
+        //     "type": "securestring",
+        //     "value": "[reference(variables('webpShared').name).outputs.AppInsightsInstrumentationKey.value]"
+        // },
+        "AppInsightsInstrumentationSecretKey": {
+            "type": "string",
+            "value": "[reference(variables('webpShared').name).outputs.AppInsightsInstrumentationSecretKey.value]"
+        },
+        "BlobStorageConnectionStringSecretKey": {
+            "type": "string",
+            "value": "[reference(variables('webpShared').name).outputs.BlobStorageConnectionStringSecretKey.value]"
+        }
+    }
+}
