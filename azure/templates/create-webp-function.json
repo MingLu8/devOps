@@ -129,7 +129,7 @@
                     "appSettings": {
                         "value": {
                             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]",
-                            "WebPStorageConnectionString": "[variables('BlobStorageConnectionString')]",
+                            "BlobStorageConnectionString": "[variables('BlobStorageConnectionString')]",
                             "WebPFunctionHostName": "[concat(parameters('functionAppName'), '.azurewebsites.net')]"
                         }
                     }
