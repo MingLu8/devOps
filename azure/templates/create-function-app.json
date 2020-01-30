@@ -31,7 +31,7 @@
         },
         "StorageAccountName": {
             "type": "string",
-            "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().id))]"
+            "defaultValue": "[concat('stgfuncapp', uniqueString(parameters('functionAppName')))]"
         },
 
         "location": {
