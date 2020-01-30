@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-06-01-profile",
+    "parameters": {       
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "cdnEndPointOrigin": {
+            "type": "string"
+        },
+        "cdnProfileName": {
+            "type": "string"
+        },
+        "cdnSku": {
+            "type": "string",
+            "defaultValue": "Standard_Microsoft"
+        },
+        "cdnEndpointName": {
+            "type": "string"
+        },
+        "functionKey": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Cdn/profiles",
+            "apiVersion": "2019-04-15",
+            "name": "[parameters('cdnProfileName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('cdnSku')]"
+            },
+            "resources": [
+                {
+                    "type": "endpoints",
+                    "apiVersion": "2019-04-15",
+                    "name": "[parameters('cdnEndpointName')]",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Cdn/profiles', parameters('cdnProfileName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "CDN Endpoint"
+                    },
+                    "properties": {
+                        "originHostHeader": "[parameters('cdnEndPointOrigin')]",
+                        "isHttpAllowed": true,
+                        "isHttpsAllowed": true,
+                        "queryStringCachingBehavior": "IgnoreQueryString",
+                        "contentTypesToCompress": [
+                        ],
+                        "isCompressionEnabled": false,
+                        "origins": [
+                            {
+                                "name": "origin1",
+                                "properties": {
+                                    "hostName": "[parameters('cdnEndPointOrigin')]"
+                                }
+                            }
+                        ],
+                        "deliveryPolicy": {
+                            "description": "Add function key header",
+                            "rules": [
+                                {
+                                    "name": "ModifyRequestHeader",
+                                    "order": "0",
+                                    "actions": [
+                                        {
+                                            "name": "ModifyRequestHeader",
+                                            "parameters": {
+                                                "@odata.type": "#Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters",
+                                                "headerAction": "Append",
+                                                "headerName": "x-functions-key",
+                                                "value": "[parameters('functionKey')]"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
