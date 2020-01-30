@@ -70,7 +70,7 @@
         }
     },
     "variables": {
-        "createFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/create-function-app.json')]",
+        "createFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-function-app.json')]",
         "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
         "createFunctionApp": "createFunctionApp"
     },
