@@ -40,9 +40,9 @@
         }
     },
     "variables": {
-        "addKeyVaultTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/create-key-vault.json')]",
-        "addStorageTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-storage-account.json')]",
-        "addSecretTemplatelink": "[concat(parameters('templateBaseUrl'), '/templates/add-secret-to-key-vault.json')]",
+        "addKeyVaultTemplatelink": "[uri(parameters('templateBaseUrl'), 'templates/create-key-vault.json')]",
+        "addStorageTemplatelink": "[uri(parameters('templateBaseUrl'), 'templates/add-storage-account.json')]",
+        "addSecretTemplatelink": "[uri(parameters('templateBaseUrl'), 'templates/add-secret-to-key-vault.json')]",
 
         "WebPStorageConnectionString": "WebPStorageConnectionString",
         "WebPAppInsightInstrumentationKey": "WebPAppInsightInstrumentationKey"

@@ -17,9 +17,9 @@
             "type": "string",
             "defaultValue": "[concat('kv-func-app', uniqueString(resourceGroup().id))]"
         },
-        "BlobStorageConnectionStringSecretKey": {
-            "type": "string"
-        },
+        // "BlobStorageConnectionStringSecretKey": {
+        //     "type": "string"
+        // },
         "userAppSettings": {
             "type": "object",
             "defaultValue": {
@@ -69,11 +69,15 @@
             "metadata": {
                 "description": "Storage Account type"
             }
+        },
+        "WebPStorageConnectionStringSecretName":{
+            "type":"string",
+            "defaultValue": "WebPStorageConnectionString"
         }
     },
     "variables": {
-        "createFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-function-app.json')]",
-        "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
+        "createFunctionAppTemplateLink": "[uri(parameters('templateBaseUrl'), 'templates/create-function-app.json')]",
+        //"BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretName'), ')')]",
         "createWebPQueueFunctionApp": "createWebPQueueFunctionApp",
         "queueStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('webPQueueStorageAccountName'))]"
     },
@@ -132,7 +136,7 @@
                     "appSettings": {
                         "value": {
                             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]",
-                            "BlobStorageConnectionString": "[variables('BlobStorageConnectionString')]",
+                            "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId(subscription().subscriptionId, resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('WebPStorageConnectionStringSecretName')), '2019-09-01', 'Full').properties.secretUriWithVersion, ')')]",
                             "QueueConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('webPQueueStorageAccountName'), ';AccountKey=', listKeys(variables('queueStorageAccountid'),'2019-06-01').keys[0].value)]",
                             "WebPFunctionHostName": "[parameters('webPFunctionHostName')]"
                         }
