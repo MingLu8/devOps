@@ -20,7 +20,7 @@ $expiry = (Get-Date).AddDays(2).ToString("yyyy-MM-dd")
 $functionPackageUri = GetBlobUrl -resourceGroup $deployResourceGroup -accountName $deployAccountName -containerName $deployContainerName -blobName $webpFunctionPackage -expiry $expiry
 
 $resourceGroup = "deploy-webp-group-ming13"
-$functionAppName = "azure-webp2"
+$functionAppName = "azure-webp3"
 $location = "East US"
 $templateFile = ".\create-webp-function.json"
 $templateContainerName = "arm-templates"
@@ -38,5 +38,5 @@ New-AzResourceGroupDeployment `
     -sasToken $sasToken `
     -functionPackageUri $functionPackageUri `
     -functionAppName $functionAppName `
-    # -debug
+    -debug
 

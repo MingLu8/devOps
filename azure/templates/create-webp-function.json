@@ -83,6 +83,7 @@
     },
     "variables": {
         "createFunctionAppTemplateLink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-function-app.json?', parameters('sasToken')))]",
+        "addKeyVaultAccessPolicyTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/add-key-vault-access-policy.json?', parameters('sasToken')))]",
         "addSecretTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-key-vault-secret.json?', parameters('sasToken')))]",
         "createCdnTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-cdn-endpoint.json?', parameters('sasToken')))]",
         "createFunctionApp": "createFunctionApp",
@@ -164,7 +165,7 @@
             "properties": {
                 "mode": "incremental",
                 "templateLink": {
-                    "uri": "[variables('addSecretTemplatelink')]",
+                    "uri": "[variables('addKeyVaultAccessPolicyTemplatelink')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -179,6 +180,32 @@
                     },
                     "secretsPermissions": {
                         "value": "[parameters('secretsPermissions')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addSecretWebPFunctionKeySecret",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('createFunctionApp')]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addSecretTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secretName": {
+                        "value": "WebPFunctionKey"
+                    },
+                    "secretValue": {
+                        "value": "[reference(variables('createFunctionApp')).outputs.functionDefaultKey.value]"
                     }
                 }
             }
