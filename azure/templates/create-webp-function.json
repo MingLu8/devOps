@@ -6,8 +6,19 @@
         "templateBaseUrl": {
             "type": "string"
         },
-        "BlobStorageConnectionStringSecretKey": {
+        "sasToken": {
             "type": "string"
+        },
+        "functionPackageUri": {
+            "type": "string"
+        },
+        "cdnEndpointName": {
+            "type": "string",
+            "defaultValue": "[concat('webp-', uniqueString(resourceGroup().id))]"
+        },
+        "WebPStorageConnectionStringSecretName": {
+            "type": "string",
+            "defaultValue": "WebPStorageConnectionString"
         },
         "userAppSettings": {
             "type": "object",
@@ -20,7 +31,8 @@
             }
         },
         "applicationInsightsName": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "[concat('ai-webp-', uniqueString(resourceGroup().id))]"
         },
         "functionAppName": {
             "type": "string",
@@ -28,9 +40,6 @@
             "metadata": {
                 "description": "The name of the function app that you wish to create."
             }
-        },
-        "functionPackageUri": {
-            "type": "string"
         },
         "keyVaultName": {
             "type": "string",
@@ -40,7 +49,10 @@
             "type": "string",
             "defaultValue": "[concat('stgfuncapp', uniqueString(resourceGroup().id))]"
         },
-
+        "tenantId": {
+            "type": "string",
+            "defaultValue": "[subscription().tenantId]"
+        },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
@@ -70,31 +82,34 @@
         }
     },
     "variables": {
-        "createFunctionAppTemplateLink": "[concat(parameters('templateBaseUrl'), '/templates/create-function-app.json')]",
-        "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('BlobStorageConnectionStringSecretKey'), ')')]",
-        "createFunctionApp": "createFunctionApp"
+        "createFunctionAppTemplateLink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-function-app.json?', parameters('sasToken')))]",
+        "addSecretTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-key-vault-secret.json?', parameters('sasToken')))]",
+        "createCdnTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-cdn-endpoint.json?', parameters('sasToken')))]",
+        "createFunctionApp": "createFunctionApp",
+        "cdnProfileName": "[concat('webpcdn', uniqueString(resourceGroup().id))]"
+
     },
     "resources": [
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[parameters('storageAccountName')]",
-            "apiVersion": "2019-04-01",
-            "location": "[parameters('location')]",
-            "kind": "StorageV2",
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "sku": {
-                "name": "[parameters('storageAccountType')]"
-            }
-        },
+        // {
+        //     "type": "Microsoft.Storage/storageAccounts",
+        //     "name": "[parameters('storageAccountName')]",
+        //     "apiVersion": "2019-04-01",
+        //     "location": "[parameters('location')]",
+        //     "kind": "StorageV2",
+        //     "identity": {
+        //         "type": "SystemAssigned"
+        //     },
+        //     "sku": {
+        //         "name": "[parameters('storageAccountType')]"
+        //     }
+        // },
         {
             "apiVersion": "2017-05-10",
             "name": "[variables('createFunctionApp')]",
             "type": "Microsoft.Resources/deployments",
-            "dependsOn": [
-                "[parameters('storageAccountName')]"
-            ],
+            // "dependsOn": [
+            //     "[parameters('storageAccountName')]"
+            // ],
             "properties": {
                 "mode": "incremental",
                 "templateLink": {
@@ -104,6 +119,9 @@
                 "parameters": {
                     "templateBaseUrl": {
                         "value": "[parameters('templateBaseUrl')]"
+                    },
+                    "sasToken": {
+                        "value": "[parameters('sasToken')]"
                     },
                     "functionAppName": {
                         "value": "[parameters('functionAppName')]"
@@ -129,9 +147,67 @@
                     "appSettings": {
                         "value": {
                             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('microsoft.insights/components/', parameters('applicationInsightsName')), '2015-05-01').InstrumentationKey]",
-                            "BlobStorageConnectionString": "[variables('BlobStorageConnectionString')]",
+                            "BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId(subscription().subscriptionId, resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('WebPStorageConnectionStringSecretName')), '2019-09-01', 'Full').properties.secretUriWithVersion, ')')]",
                             "WebPFunctionHostName": "[concat(parameters('functionAppName'), '.azurewebsites.net')]"
                         }
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addSecretWebPFunctionAccessPolicy",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('createFunctionApp')]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('addSecretTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "tenantId": {
+                        "value": "[parameters('tenantId')]"
+                    },
+                    "objectId": {
+                        "value": "[reference(variables('createFunctionApp')).outputs.functionPrincipleId.value]"
+                    },
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secretsPermissions": {
+                        "value": "[parameters('secretsPermissions')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "addCdn",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[variables('createFunctionApp')]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('createCdnTemplatelink')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "cdnEndPointOrigin": {
+                        "value": "[concat(parameters('functionAppName'), '.azurewebsites.net')]"
+                    },
+                    "cdnProfileName": {
+                        "value": "[variables('cdnProfileName')]"
+                    },
+                    "cdnEndpointName": {
+                        "value": "[parameters('cdnEndpointName')]"
+                    },
+                    "functionKey": {
+                        "value": "[reference(variables('createFunctionApp')).outputs.functionDefaultKey.value]"
                     }
                 }
             }

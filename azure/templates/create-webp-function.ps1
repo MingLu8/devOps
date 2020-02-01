@@ -1,33 +1,42 @@
-$userPrinciple = Get-AzADUser -UserPrincipalName mclu@asicentral.com | Select-Object -ExpandProperty Id
-$functionPackageUri = "https://asideploymentstorage.blob.core.windows.net/deployments/webp/webp/publish.zip?sp=r&st=2020-01-29T14:49:37Z&se=2021-01-29T22:49:37Z&spr=https&sv=2019-02-02&sr=b&sig=JebH0th1EUgYQQJQcjzu12MYPT4KzcYUIKgXso%2BHbxA%3D"
-$resourceGroup = "webp-group-ming"
+
+param (
+    [Parameter(Mandatory = $true)][string]$environment
+)
+
+
+. .\helpers.ps1
+
+if (!$environment) {
+    $environment = Read-Host -Prompt 'Please enter the deployment environment: '
+}
+
+
+$deployResourceGroup = "deploy-storage-group"
+$deployAccountName = "asideploymentstorage"
+$deployContainerName = "deployments"
+$webpFunctionPackage = "webp/webp/publish.zip"
+$expiry = (Get-Date).AddDays(2).ToString("yyyy-MM-dd")
+
+$functionPackageUri = GetBlobUrl -resourceGroup $deployResourceGroup -accountName $deployAccountName -containerName $deployContainerName -blobName $webpFunctionPackage -expiry $expiry
+
+$resourceGroup = "deploy-webp-group-ming13"
+$functionAppName = "azure-webp2"
 $location = "East US"
 $templateFile = ".\create-webp-function.json"
-$parameterFile = ".\create-webp-function.parameters.dev.json"
-#$templateParameterFile = ".\keyvaultdeploy.parameters.json"
+$templateContainerName = "arm-templates"
+$sasToken = GetStorageContainerSas $deployResourceGroup $deployAccountName $templateContainerName
+$templateParameterFile = "./create-webp-function.parameters.$environment.json"
 
-$keyVaultName = "kv-webp-xr2l3f7b3unbs"
-$blobStorageConnectionString = az keyvault secret show --vault-name $keyVaultName --name WebPStorageConnectionString | ConvertFrom-Json | select -ExpandProperty Id
-$applicationInsightsName = $keyVaultName.Replace("kv-webp-", "webpinsights")
+az group create -l $location -n $resourceGroup
 
-
-#Remove-AzResourceGroup -Name sample -Force
-
-Get-AzResourceGroup -Name $resourceGroup -ErrorVariable notPresent -ErrorAction SilentlyContinue
-
-if ($notPresent) {
-    New-AzResourceGroup -Name $resourceGroup -Location $location
-}
-  
 New-AzResourceGroupDeployment `
     -Name sampleWebpDeployment2 `
     -ResourceGroupName $resourceGroup `
     -TemplateFile $templateFile `
-    -TemplateParameterFile $parameterFile `
+    -TemplateParameterFile $templateParameterFile `
     -location $location `
+    -sasToken $sasToken `
     -functionPackageUri $functionPackageUri `
-    -BlobStorageConnectionStringSecretKey $blobStorageConnectionString `
-    -applicationInsightsName $applicationInsightsName `
-    -keyVaultName $keyVaultName `
-    -debug
+    -functionAppName $functionAppName `
+    # -debug
 

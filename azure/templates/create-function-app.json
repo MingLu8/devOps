@@ -6,6 +6,9 @@
         "templateBaseUrl": {
             "type": "string"
         },
+        "sasToken": {
+            "type": "string"
+        },
         "functionPackageUri": {
             "type": "string"
         },
@@ -68,9 +71,9 @@
         }
     },
     "variables": {
-        "addSecretTemplatelink": "[uri(parameters('templateBaseUrl'), 'templates/add-secret-to-key-vault.json')]",
-        "addFunctionAppHostTemplateLink": "[uri(parameters('templateBaseUrl'), 'templates/create-function-app-host.json')]",
-        "addKeyVaultSecretAccessPolicyTemplatelink": "[uri(parameters('templateBaseUrl'), 'templates/add-key-vault-access-policy.json')]",
+        "addSecretTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-key-vault-secret.json?', parameters('sasToken')))]",
+        "addFunctionAppHostTemplateLink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/create-function-app-host.json?', parameters('sasToken')))]",
+        "addKeyVaultSecretAccessPolicyTemplatelink": "[uri(parameters('templateBaseUrl'), concat('arm-templates/common/add-key-vault-access-policy.json?', parameters('sasToken')))]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
         "addFunction": "addFunction"
     },
