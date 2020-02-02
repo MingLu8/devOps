@@ -78,7 +78,7 @@
                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
             ],
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
             },
             "resources": [
                 {
