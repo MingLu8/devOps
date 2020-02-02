@@ -3,15 +3,6 @@
     "contentVersion": "1.0.0.0",
     "apiProfile": "2018-06-01-profile",
     "parameters": {
-        "templateBaseUrl": {
-            "type": "string"
-        },
-        "sasToken": {
-            "type": "string"
-        },
-        "functionPackageUri": {
-            "type": "string"
-        },
         "keyVaultName": {
             "type": "string",
             "defaultValue": "[concat('kv-func-app', uniqueString(resourceGroup().id))]"
@@ -173,18 +164,6 @@
                         "value": "[reference(variables('addFunction')).outputs.functionDefaultKey.value]"
                     }
                 }
-            }
-        },
-        {
-            "name": "[concat(parameters('functionAppName'), '/MSDeploy')]",
-            "type": "Microsoft.Web/sites/extensions",
-            "location": "[resourceGroup().location]",
-            "apiVersion": "2015-08-01",
-            "dependsOn": [
-                "addSecretFunctionDefaultKey"
-            ],
-            "properties": {
-                "packageUri": "[concat(parameters('functionPackageUri'))]"
             }
         }
     ],
