@@ -15,6 +15,14 @@
                 "description": "Specifies the name of the key vault."
             }
         },
+        "storageAccountName": {
+            "type": "string",
+            "defaultValue": "deployment",
+            "metadata": {
+                "description": "Specifies the name of the storage account."
+            },
+            "maxLength": 16
+        },
         "deploymentStorageConnectionStringSecretName": {
             "type": "string",
             "defaultValue": "deployment-storage-connection-string",
@@ -73,14 +81,23 @@
                 "description": "Specifies the Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Get it by using Get-AzSubscription cmdlet."
             }
         },
-        "storageAccountPrefix": {
+        "prefix": {
             "type": "string",
             "metadata": {
                 "description": "Prefix to be used in storage account name.",
                 "displayName": "Account name prefix"
             },
-            "defaultValue": "deploy",
-            "maxLength": 11
+            "defaultValue": "my",
+            "maxLength": 4
+        },
+        "postfix": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix to be used in storage account name.",
+                "displayName": "Account name prefix"
+            },
+            "defaultValue": "dev",
+            "maxLength": 4
         },
         "location": {
             "type": "string",
@@ -182,14 +199,15 @@
     },
     "variables": {
         "servicePrinciples": "[split(parameters('servicePrincipleIds'), ',')]",
-        "storageAccountName": "[concat(toLower(parameters('storageAccountPrefix')), uniqueString(resourceGroup().Id))]",
+        "storageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('storageAccountName')), toLower(parameters('postfix')))]",
+        "keyVaultName": "[concat(toLower(parameters('prefix')), toLower(parameters('storageAccountName')), toLower(parameters('postfix')))]",
         "blobEndPoint": "[concat('https://',variables('storageAccountName'),'.blob.core.windows.net/')]"
     },
     "resources": [
         {
             "type": "Microsoft.KeyVault/vaults",
-            "name": "[parameters('keyVaultName')]",
-            "apiVersion": "2018-02-14",
+            "name": "[variables('keyVaultName')]",
+            "apiVersion": "2016-10-01",
             "location": "[parameters('location')]",
             "properties": {
                 "enabledForDeployment": "[parameters('enabledForDeployment')]",
@@ -210,10 +228,10 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "name": "[concat(parameters('keyVaultName'), '/add')]",
+            "name": "[concat(variables('keyVaultName'), '/add')]",
             "apiVersion": "2018-02-14",
             "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
             ],
             "properties": {
                 "copy": [
@@ -267,10 +285,10 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', parameters('deploymentStorageConnectionStringSecretName'))]",
+            "name": "[concat(variables('keyVaultName'), '/', parameters('deploymentStorageConnectionStringSecretName'))]",
             "apiVersion": "2016-10-01",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+                "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
             ],
             "properties": {
                 "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-04-01').keys[0].value)]"
@@ -284,7 +302,7 @@
         },
         "storageAccountConnectionStringSecretName": {
             "type": "string",
-            "value": "[concat('https://', parameters('keyVaultName'), '.vault.azure.net/secrets/', parameters('deploymentStorageConnectionStringSecretName'), '/')]"
+            "value": "[concat('https://', variables('keyVaultName'), '.vault.azure.net/secrets/', parameters('deploymentStorageConnectionStringSecretName'), '/')]"
         },
         "storageAccountName": {
             "type": "string",
