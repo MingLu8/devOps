@@ -8,26 +8,26 @@
                 "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
             }
         },
-        "keyVaultName": {
+        "imageServiceKeyVaultName": {
             "type": "string",
-            "defaultValue": "[concat('deployment-', uniqueString(resourceGroup().id))]",
+            "defaultValue": "image-service",
             "metadata": {
                 "description": "Specifies the name of the key vault."
             }
         },
-        "storageAccountName": {
+        "imageStorageAccountName": {
             "type": "string",
-            "defaultValue": "deployment",
+            "defaultValue": "webp",
             "metadata": {
-                "description": "Specifies the name of the storage account."
+                "description": "Specifies the name of the original webp images storage account."
             },
             "maxLength": 16
         },
-        "deploymentStorageConnectionStringSecretName": {
+        "imageStorageConnectionStringSecretName": {
             "type": "string",
-            "defaultValue": "deployment-storage-connection-string",
+            "defaultValue": "image-storage-connection-string",
             "metadata": {
-                "description": "Specifies the name of the key vault."
+                "description": "Specifies the name of the secret."
             }
         },
         "enabledForDeployment": {
@@ -130,21 +130,13 @@
             ],
             "defaultValue": "Hot"
         },
-        "artifactContainerName": {
+        "originalImagesContainerName": {
             "type": "string",
             "metadata": {
-                "description": "Container name to store deployment artifacts.",
+                "description": "Container name to store original webp images.",
                 "displayName": "Container name"
             },
-            "defaultValue": "artifacts"
-        },
-        "linkedTemplateContainerName": {
-            "type": "string",
-            "metadata": {
-                "description": "Container name to store linked templates.",
-                "displayName": "Container name"
-            },
-            "defaultValue": "linked-templates"
+            "defaultValue": "originals"
         },
         "secretsPermissions": {
             "type": "array",
@@ -199,14 +191,14 @@
     },
     "variables": {
         "servicePrinciples": "[split(parameters('servicePrincipleIds'), ',')]",
-        "storageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('storageAccountName')), toLower(parameters('postfix')))]",
-        "keyVaultName": "[concat(toLower(parameters('prefix')), toLower(parameters('keyVaultName')), toLower(parameters('postfix')))]",
+        "storageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageStorageAccountName')), toLower(parameters('postfix')))]",
+        "imageServiceKeyVaultName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageServiceKeyVaultName')), toLower(parameters('postfix')))]",
         "blobEndPoint": "[concat('https://',variables('storageAccountName'),'.blob.core.windows.net/')]"
     },
     "resources": [
         {
             "type": "Microsoft.KeyVault/vaults",
-            "name": "[variables('keyVaultName')]",
+            "name": "[variables('imageServiceKeyVaultName')]",
             "apiVersion": "2016-10-01",
             "location": "[parameters('location')]",
             "properties": {
@@ -228,10 +220,10 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "name": "[concat(variables('keyVaultName'), '/add')]",
+            "name": "[concat(variables('imageServiceKeyVaultName'), '/add')]",
             "apiVersion": "2018-02-14",
             "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                "[resourceId('Microsoft.KeyVault/vaults', variables('imageServiceKeyVaultName'))]"
             ],
             "properties": {
                 "copy": [
@@ -267,15 +259,7 @@
             "resources": [
                 {
                     "type": "blobServices/containers",
-                    "name": "[concat('default/', parameters('artifactContainerName'))]",
-                    "apiVersion": "2019-04-01",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
-                    ]
-                },
-                {
-                    "type": "blobServices/containers",
-                    "name": "[concat('default/', parameters('linkedTemplateContainerName'))]",
+                    "name": "[concat('default/', parameters('originalImagesContainerName'))]",
                     "apiVersion": "2019-04-01",
                     "dependsOn": [
                         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
@@ -285,14 +269,26 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(variables('keyVaultName'), '/', parameters('deploymentStorageConnectionStringSecretName'))]",
+            "name": "[concat(variables('imageServiceKeyVaultName'), '/', parameters('imageStorageConnectionStringSecretName'))]",
             "apiVersion": "2016-10-01",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+                "[concat('Microsoft.KeyVault/vaults/', variables('imageServiceKeyVaultName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ],
             "properties": {
                 "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-04-01').keys[0].value)]"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/providers/locks",
+            "apiVersion": "2016-09-01",
+            "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/storageLock')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "level": "CanNotDelete",
+                "notes": "Storage account should not be deleted."
             }
         }
     ],
@@ -301,21 +297,17 @@
             "type": "string",
             "value": "[variables('blobEndPoint')]"
         },
-        "storageAccountConnectionStringSecretName": {
+        "imageStorageConnectionStringSecretName": {
             "type": "string",
-            "value": "[concat('https://', variables('keyVaultName'), '.vault.azure.net/secrets/', parameters('deploymentStorageConnectionStringSecretName'), '/')]"
+            "value": "[concat('https://', variables('imageServiceKeyVaultName'), '.vault.azure.net/secrets/', parameters('imageStorageConnectionStringSecretName'), '/')]"
         },
-        "storageAccountName": {
+        "imageStorageAccountName": {
             "type": "string",
             "value": "[variables('storageAccountName')]"
         },
-        "artifactContainerName": {
+        "imageContainerName": {
             "type": "string",
-            "value": "[parameters('artifactContainerName')]"
-        },
-        "linkedTemplateContainerName": {
-            "type": "string",
-            "value": "[parameters('linkedTemplateContainerName')]"
+            "value": "[parameters('originalImagesContainerName')]"
         }
     }
 }

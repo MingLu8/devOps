@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "value": "mclu"
+    },
+    "postfix": {
+      "value": "dev4"
+    },
+    "location": {
+      "value": "West Europe"
+    },
+    "accountType": {
+      "value": "Standard_LRS"
+    },
+    "accessTier": {
+      "value": "Hot"
+    },
+    "originalImagesContainerName": {
+      "value": "originals"
+    },
+    "servicePrincipleIds": {
+      "value": "b1fa8246-2726-41fd-bd66-5f078177760f, 4002e54a-cb4f-42c9-9ea9-8dd20c0ae50e, 243dd341-bdf3-4c67-af19-1af8b44202ca"
+    },
+    "imageStorageAccountName": {
+      "value": "webp"
+    },
+    "imageServiceKeyVaultName": {
+      "value": "imageservice"
+    },
+    "imageStorageConnectionStringSecretName": {
+      "value": "image-storage-connection-string"
+    }
+  }
+}
