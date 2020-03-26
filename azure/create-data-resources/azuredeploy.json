@@ -10,14 +10,14 @@
         },
         "imageServiceKeyVaultName": {
             "type": "string",
-            "defaultValue": "image-service",
+            "defaultValue": "imageservice",
             "metadata": {
                 "description": "Specifies the name of the key vault."
             }
         },
         "imageStorageAccountName": {
             "type": "string",
-            "defaultValue": "webp",
+            "defaultValue": "image",
             "metadata": {
                 "description": "Specifies the name of the original webp images storage account."
             },
@@ -26,6 +26,21 @@
         "imageStorageConnectionStringSecretName": {
             "type": "string",
             "defaultValue": "image-storage-connection-string",
+            "metadata": {
+                "description": "Specifies the name of the secret."
+            }
+        },
+        "resizedImageStorageAccountName": {
+            "type": "string",
+            "defaultValue": "resizedimage",
+            "metadata": {
+                "description": "Specifies the name of the original webp images storage account."
+            },
+            "maxLength": 16
+        },
+        "resizedImageStorageConnectionStringSecretName": {
+            "type": "string",
+            "defaultValue": "resized-image-storage-connection-string",
             "metadata": {
                 "description": "Specifies the name of the secret."
             }
@@ -191,9 +206,10 @@
     },
     "variables": {
         "servicePrinciples": "[split(parameters('servicePrincipleIds'), ',')]",
-        "storageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageStorageAccountName')), toLower(parameters('postfix')))]",
+        "imageStorageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageStorageAccountName')), toLower(parameters('postfix')))]",
+        "resizedImageStorageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('resizedImageStorageAccountName')), toLower(parameters('postfix')))]",
         "imageServiceKeyVaultName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageServiceKeyVaultName')), toLower(parameters('postfix')))]",
-        "blobEndPoint": "[concat('https://',variables('storageAccountName'),'.blob.core.windows.net/')]"
+        "blobEndPoint": "[concat('https://',variables('imageStorageAccountName'),'.blob.core.windows.net/')]"
     },
     "resources": [
         {
@@ -244,7 +260,7 @@
             }
         },
         {
-            "name": "[variables('storageAccountName')]",
+            "name": "[variables('imageStorageAccountName')]",
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-04-01",
             "location": "[parameters('location')]",
@@ -262,7 +278,7 @@
                     "name": "[concat('default/', parameters('originalImagesContainerName'))]",
                     "apiVersion": "2019-04-01",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('imageStorageAccountName'))]"
                     ]
                 }
             ]
@@ -273,18 +289,83 @@
             "apiVersion": "2016-10-01",
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/', variables('imageServiceKeyVaultName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('imageStorageAccountName'))]"
             ],
             "properties": {
-                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-04-01').keys[0].value)]"
+                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('imageStorageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('imageStorageAccountName')), '2019-04-01').keys[0].value)]"
             }
         },
         {
             "type": "Microsoft.Storage/storageAccounts/providers/locks",
             "apiVersion": "2016-09-01",
-            "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/storageLock')]",
+            "name": "[concat(variables('imageStorageAccountName'), '/Microsoft.Authorization/storageLock')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('imageStorageAccountName'))]"
+            ],
+            "properties": {
+                "level": "CanNotDelete",
+                "notes": "Storage account should not be deleted."
+            }
+        },
+        {
+            "name": "[variables('resizedImageStorageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-04-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accessTier": "[parameters('accessTier')]",
+                "supportsHttpsTrafficOnly": true
+            },
+            "sku": {
+                "name": "[parameters('accountType')]"
+            },
+            "kind": "StorageV2",
+            "resources": [
+                {
+                    "type": "blobServices/containers",
+                    "name": "[concat('default/', 'jpgo')]",
+                    "apiVersion": "2019-04-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('resizedImageStorageAccountName'))]"
+                    ]
+                },
+                {
+                    "type": "blobServices/containers",
+                    "name": "[concat('default/', 'jpga')]",
+                    "apiVersion": "2019-04-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('resizedImageStorageAccountName'))]"
+                    ]
+                },
+                {
+                    "type": "blobServices/containers",
+                    "name": "[concat('default/', 'jpgt')]",
+                    "apiVersion": "2019-04-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('resizedImageStorageAccountName'))]"
+                    ]
+                }
+
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('imageServiceKeyVaultName'), '/', parameters('resizedImageStorageConnectionStringSecretName'))]",
+            "apiVersion": "2016-10-01",
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', variables('imageServiceKeyVaultName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('resizedImageStorageAccountName'))]"
+            ],
+            "properties": {
+                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('resizedImageStorageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('resizedImageStorageAccountName')), '2019-04-01').keys[0].value)]"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/providers/locks",
+            "apiVersion": "2016-09-01",
+            "name": "[concat(variables('resizedImageStorageAccountName'), '/Microsoft.Authorization/storageLock')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('resizedImageStorageAccountName'))]"
             ],
             "properties": {
                 "level": "CanNotDelete",
@@ -303,11 +384,23 @@
         },
         "imageStorageAccountName": {
             "type": "string",
-            "value": "[variables('storageAccountName')]"
+            "value": "[variables('imageStorageAccountName')]"
         },
         "imageContainerName": {
             "type": "string",
             "value": "[parameters('originalImagesContainerName')]"
+        },
+        "resizedImageStorageConnectionStringSecretName": {
+            "type": "string",
+            "value": "[concat('https://', variables('imageServiceKeyVaultName'), '.vault.azure.net/secrets/', parameters('resizedImageStorageConnectionStringSecretName'), '/')]"
+        },
+        "resizedImageStorageAccountName": {
+            "type": "string",
+            "value": "[variables('resizedImageStorageAccountName')]"
+        },
+        "resizedImageContainerNames": {
+            "type": "string",
+            "value": "jpgo, jpga, jpgt"
         }
     }
 }
