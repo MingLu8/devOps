@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "servicePrincipleIds": {
+        "keyVaultAccessServicePrinciples": {
             "type": "string",
             "metadata": {
                 "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
@@ -121,7 +121,7 @@
                 "strongType": "location",
                 "displayName": "Deployment location"
             },
-            "defaultValue": "West Europe"
+            "defaultValue": "East US"
         },
         "accountType": {
             "type": "string",
@@ -205,7 +205,7 @@
         }
     },
     "variables": {
-        "servicePrinciples": "[split(parameters('servicePrincipleIds'), ',')]",
+        "servicePrinciples": "[split(parameters('keyVaultAccessServicePrinciples'), ',')]",
         "imageStorageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageStorageAccountName')), toLower(parameters('postfix')))]",
         "resizedImageStorageAccountName": "[concat(toLower(parameters('prefix')), toLower(parameters('resizedImageStorageAccountName')), toLower(parameters('postfix')))]",
         "imageServiceKeyVaultName": "[concat(toLower(parameters('prefix')), toLower(parameters('imageServiceKeyVaultName')), toLower(parameters('postfix')))]",
