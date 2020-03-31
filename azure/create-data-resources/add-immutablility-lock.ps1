@@ -1,6 +1,10 @@
-$ResourceGroupName = "mclu-image-service-data"
-$StorageAccountName = "mcluwebpdev4"
-$containerName = "originals"
+param (
+    [Parameter(Mandatory = $true)][string] $ResourceGroupName,
+    [Parameter(Mandatory = $true)][string] $StorageAccountName,
+    $immutabilityPeriod = 1,
+    $containerName = "originals"
+)
+
 $legalHoldTag = "$StorageAccountName$containerName"
 
 Add-AzRmStorageContainerLegalHold `
@@ -12,7 +16,7 @@ Set-AzRmStorageContainerImmutabilityPolicy `
     -ResourceGroupName $ResourceGroupName `
     -StorageAccountName $StorageAccountName `
     -ContainerName $containerName `
-    -ImmutabilityPeriod 1
+    -ImmutabilityPeriod $ImmutabilityPeriod `
 
 $policy = Get-AzRmStorageContainerImmutabilityPolicy `
     -ResourceGroupName $ResourceGroupName `
